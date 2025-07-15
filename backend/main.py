@@ -6,9 +6,10 @@ import time
 import cv2
 from fastapi.responses import StreamingResponse
 
-from .database import crud, models, schemas
-from .database.database import SessionLocal, engine
-from adapters import bronze_adapter, silver_adapter, gold_adapter # Importando os adaptadores
+from database import crud, models, schemas  # Removido o '.'
+import adapters.bronze_adapter as bronze_adapter
+import adapters.silver_adapter as silver_adapter
+import adapters.gold_adapter as gold_adapter
 
 # Cria as tabelas no banco de dados
 models.Base.metadata.create_all(bind=engine)

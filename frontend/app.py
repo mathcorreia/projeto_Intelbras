@@ -166,4 +166,4 @@ def update_main_content(camera_id, n):
         return html.H4("Erro de comunicação com o backend.", className="text-center mt-5 text-danger")
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
+    app.run(host='0.0.0.0', port=8050, debug=True)

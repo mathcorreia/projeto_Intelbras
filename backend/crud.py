@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from .database import models
-from . import schemas
+from database import models 
+import schemas             
 
 def get_camera(db: Session, camera_id: int):
     return db.query(models.Camera).filter(models.Camera.id == camera_id).first()
