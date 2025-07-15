@@ -4,6 +4,11 @@ FROM python:3.10-slim
 # Define o diretório de trabalho no container.
 WORKDIR /app
 
+# ---- ADICIONE ESTA LINHA ----
+# Adiciona o diretório de trabalho ao PYTHONPATH para resolver importações.
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+# ---- FIM DA MUDANÇA ----
+
 # Copia o arquivo de dependências e instala as dependências.
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
