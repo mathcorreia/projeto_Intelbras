@@ -1,0 +1,40 @@
+<div class="d-flex" style="height: 100vh;">
+  <div class="bg-dark text-white p-3" style="width: 280px;">
+    <h2 class="mb-4">Câmeras</h2>
+    <div class="list-group list-group-flush">
+      <a *ngFor="let cam of cameras" href="#"
+         class="list-group-item list-group-item-action bg-dark text-white"
+         [class.active]="selectedCamera?.id === cam.id"
+         (click)="selectCamera(cam)">
+        {{ cam.name }}
+      </a>
+    </div>
+  </div>
+
+  <div class="flex-grow-1 p-4" style="overflow-y: auto;">
+    <div *ngIf="selectedCamera; else noCameraSelected">
+      <h3>Dashboard: {{ selectedCamera.name }}</h3>
+      <div class="row mt-4">
+        <div class="col-md-8">
+          <h4 class="mb-3">Vídeo ao Vivo</h4>
+          <img *ngIf="videoFeedUrl" [src]="videoFeedUrl" class="img-fluid border rounded">
+        </div>
+        <div class="col-md-4">
+          <h4 class="mb-3">Eventos Recentes</h4>
+          <div *ngIf="events.length > 0; else noEvents">
+            <ul class="list-group">
+              <li *ngFor="let event of events" class="list-group-item">
+                <strong>{{ event.event_type }}</strong> em 
+                <span class="text-muted">{{ event.timestamp | date:'dd/MM HH:mm:ss' }}</span>
+              </li>
+            </ul>
+          </div>
+          <ng-template #noEvents><p>Nenhum evento registrado.</p></ng-template>
+        </div>
+      </div>
+    </div>
+    <ng-template #noCameraSelected>
+      <div class="text-center mt-5"><h3>Selecione uma câmera para começar</h3></div>
+    </ng-template>
+  </div>
+</div>
