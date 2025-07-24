@@ -5,16 +5,15 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-# CORREÇÃO: Importações limpas e corretas para a estrutura de pacotes.
 from .database import models, core
 from .adapters import bronze_adapter, onvif_adapter
 from . import crud, schemas
 
-# Usa o 'core.engine' importado para criar as tabelas.
 models.Base.metadata.create_all(bind=core.engine)
-
 app = FastAPI()
+app.mount("/faces", StaticFiles(directory="face_images"), name="faces")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,10 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ADAPTER_MAP = {
-    "bronze": bronze_adapter.BronzeCameraAdapter,
-    "onvif": onvif_adapter.OnvifAdapter,
-}
+ADAPTER_MAP = {"bronze": bronze_adapter.BronzeCameraAdapter,"onvif": onvif_adapter.OnvifAdapter}
 
 def get_db():
     db = core.SessionLocal()
@@ -36,7 +32,6 @@ def get_db():
     finally:
         db.close()
 
-# --- API Endpoints ---
 @app.post("/cameras/", response_model=schemas.Camera)
 def create_camera(camera: schemas.CameraCreate, db: Session = Depends(get_db)):
     return crud.create_camera(db=db, camera=camera)
@@ -55,22 +50,30 @@ def generate_frames(camera_ip, username, password):
     while True:
         success, frame = cap.read()
         if not success:
-            break
+            print(f"Falha ao conectar ao stream RTSP em {camera_ip}. Tentando novamente...")
+            time.sleep(5)
+            cap.open(rtsp_url)
+            continue
         else:
-            ret, buffer = cv2.imencode('.jpg', frame)
+            _, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.get("/video_feed/{camera_id}")
 def video_feed(camera_id: int, db: Session = Depends(get_db)):
     camera = crud.get_camera(db, camera_id=camera_id)
     if not camera:
         raise HTTPException(status_code=404, detail="Camera not found")
-    return StreamingResponse(generate_frames(camera.ip_address, camera.username, camera.password),
-                             media_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(generate_frames(camera.ip_address, camera.username, camera.password), media_type='multipart/x-mixed-replace; boundary=frame')
 
-# --- Background Polling Logic ---
+@app.get("/cameras/{camera_id}", response_model=schemas.Camera)
+def read_camera(camera_id: int, db: Session = Depends(get_db)):
+    db_camera = crud.get_camera(db, camera_id=camera_id)
+    if db_camera is None:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return db_camera
+
+
 def poll_camera_events(db_session_factory):
     while True:
         db = db_session_factory()
@@ -80,10 +83,10 @@ def poll_camera_events(db_session_factory):
             adapter_instance = Adapter(cam.ip_address, cam.username, cam.password)
             events = adapter_instance.get_events()
             for event_data in events:
-                event = schemas.EventCreate(event_type=event_data['type'])
+                event = schemas.EventCreate(**event_data)
                 crud.create_event(db, event=event, camera_id=cam.id)
         db.close()
         time.sleep(10)
 
-polling_thread = threading.Thread(target=poll_camera_events, args=(core.SessionLocal,), daemon=True)
-polling_thread.start()
+#polling_thread = threading.Thread(target=poll_camera_events, args=(core.SessionLocal,), daemon=True)
+#polling_thread.start()

@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, TEXT
 from sqlalchemy.orm import relationship
 import datetime
-
 from .core import Base
 
 class Camera(Base):
@@ -11,7 +10,7 @@ class Camera(Base):
     ip_address = Column(String, unique=True, index=True)
     username = Column(String)
     password = Column(String)
-    camera_type = Column(String, default="bronze")
+    camera_type = Column(String, default="onvif")
     events = relationship("Event", back_populates="camera")
 
 class Event(Base):
@@ -21,3 +20,5 @@ class Event(Base):
     event_type = Column(String, index=True)
     camera_id = Column(Integer, ForeignKey("cameras.id"))
     camera = relationship("Camera", back_populates="events")
+    event_data = Column(TEXT, nullable=True)
+    face_image_path = Column(String, nullable=True)

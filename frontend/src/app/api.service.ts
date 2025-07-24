@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class ApiService {
   private apiUrl = 'http://localhost:8000';
 
@@ -19,4 +21,7 @@ export class ApiService {
   getVideoFeedUrl(cameraId: number): string {
     return `${this.apiUrl}/video_feed/${cameraId}`;
   }
+  readCamera(cameraId: number): Observable<any> {
+  return this.http.get<any>(`${this.apiUrl}/cameras/${cameraId}`);
+}
 }

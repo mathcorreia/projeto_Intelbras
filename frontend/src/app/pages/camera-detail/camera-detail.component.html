@@ -1,0 +1,46 @@
+<div class="detail-view-container" *ngIf="camera">
+  <header class="detail-header">
+    <a (click)="goBack()" class="back-button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>Voltar</span>
+    </a>
+    <div class="header-info">
+      <h1>{{ camera.name }}</h1>
+      <span>{{ camera.ip_address }}</span>
+    </div>
+  </header>
+
+  <div class="content-grid">
+    <div class="video-container">
+      <h2>Vídeo Ao Vivo</h2>
+      <div class="video-wrapper">
+        <img *ngIf="videoFeedUrl" [src]="videoFeedUrl" alt="Video feed">
+        <div *ngIf="!videoFeedUrl" class="no-video">
+          <span>Vídeo indisponível</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="events-container">
+      <h2>Eventos de IA</h2>
+      <div class="event-list">
+        <div *ngIf="events.length === 0" class="no-events">
+          A aguardar por novos eventos...
+        </div>
+        <div *ngFor="let event of events" class="event-card">
+          <div class="event-icon" *ngIf="event.face_image_path">
+            <img [src]="'http://localhost:8000/faces/' + event.face_image_path" alt="Face detectada">
+          </div>
+          <div class="event-details">
+            <span class="event-title">{{ event.event_type }}</span>
+            <div *ngIf="event.parsed_data" class="event-meta">
+              <span>Nome: <b>{{ event.parsed_data.nome }}</b></span>
+              <span>CPF: <b>{{ event.parsed_data.cpf }}</b></span>
+            </div>
+            <span class="event-timestamp">{{ event.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

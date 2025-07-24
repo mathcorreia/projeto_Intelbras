@@ -1,26 +1,36 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional
+import datetime
 
+# --- Esquema para Eventos ---
+class EventBase(BaseModel):
+    event_type: str
+    event_data: Optional[str] = None # <-- RENOMEADO
+    face_image_path: Optional[str] = None
+class EventCreate(EventBase):
+    pass
+
+class Event(EventBase):
+    id: int
+    camera_id: int
+    timestamp: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+# --- Esquema para Câmeras ---
 class CameraBase(BaseModel):
     name: str
     ip_address: str
-    level: str
+    username: str
+    camera_type: str
 
 class CameraCreate(CameraBase):
-    pass
+    password: str
 
 class Camera(CameraBase):
     id: int
+    events: list[Event] = []
 
     class Config:
-        orm_mode = True
-
-class Event(BaseModel):
-    id: int
-    camera_id: int
-    timestamp: str
-    event_type: str
-    metadata: Optional[Dict[str, Any]] = None
-
-    class Config:
-        orm_mode = True
+        from_attributes = True

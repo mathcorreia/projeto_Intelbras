@@ -1,0 +1,65 @@
+.dashboard-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--divider-color);
+  margin-bottom: 30px;
+
+  h1 {
+    font-size: 2.5rem;
+    margin: 0;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: var(--secondary-text-color);
+    margin-top: 8px;
+  }
+}
+
+.camera-card {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background-color);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 15px;
+  text-decoration: none;
+  color: var(--text-color);
+  box-shadow: var(--box-shadow);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.camera-icon {
+  margin-right: 20px;
+  color: var(--accent-color);
+}
+
+.camera-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.camera-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.camera-ip {
+  color: var(--secondary-text-color);
+  font-size: 0.9rem;
+}
+
+.arrow-icon {
+  color: var(--secondary-text-color);
+}

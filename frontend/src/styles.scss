@@ -1,1 +1,29 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos Globais em styles.scss */
+
+/* Importa a fonte Inter do Google Fonts para um look moderno */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --background-color: #f5f5f7;
+  --card-background-color: #ffffff;
+  --text-color: #1d1d1f;
+  --secondary-text-color: #6e6e73;
+  --divider-color: #d2d2d7;
+  --accent-color: #0071e3;
+  --hover-color: #f0f0f0;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background-color: var(--background-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}

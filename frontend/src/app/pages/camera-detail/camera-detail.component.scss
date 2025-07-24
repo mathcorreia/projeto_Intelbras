@@ -1,0 +1,138 @@
+.detail-view-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: var(--card-background-color);
+  border-bottom: 1px solid var(--divider-color);
+  flex-shrink: 0;
+
+  .header-info {
+    margin: 0 auto;
+    text-align: center;
+    h1 { margin: 0; font-size: 1.5rem; }
+    span { color: var(--secondary-text-color); }
+  }
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  color: var(--accent-color);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--hover-color);
+  }
+  span { margin-left: 6px; }
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  padding: 30px 40px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.video-container, .events-container {
+  h2 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--secondary-text-color);
+  }
+}
+
+.video-wrapper {
+  width: 100%;
+  background-color: #000;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  box-shadow: var(--box-shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .no-video {
+    color: #fff;
+    font-weight: 500;
+  }
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.event-card {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background-color);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.event-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 15px;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-title {
+  font-weight: 600;
+}
+
+.event-meta {
+  font-size: 0.9rem;
+  color: var(--secondary-text-color);
+  b { color: var(--text-color); }
+}
+
+.event-timestamp {
+  font-size: 0.8rem;
+  color: var(--secondary-text-color);
+}
+
+.no-events {
+  text-align: center;
+  padding: 40px;
+  background-color: var(--card-background-color);
+  border-radius: var(--border-radius);
+  color: var(--secondary-text-color);
+}
