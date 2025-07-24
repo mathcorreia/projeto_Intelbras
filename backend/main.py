@@ -40,32 +40,6 @@ def create_camera(camera: schemas.CameraCreate, db: Session = Depends(get_db)):
 def read_cameras(db: Session = Depends(get_db)):
     return crud.get_cameras(db)
 
-@app.get("/events/{camera_id}", response_model=list[schemas.Event])
-def read_events(camera_id: int, db: Session = Depends(get_db)):
-    return crud.get_events_for_camera(db, camera_id=camera_id)
-
-def generate_frames(camera_ip, username, password):
-    rtsp_url = f"rtsp://{username}:{password}@{camera_ip}:554/cam/realmonitor?channel=1&subtype=0"
-    cap = cv2.VideoCapture(rtsp_url)
-    while True:
-        success, frame = cap.read()
-        if not success:
-            print(f"Falha ao conectar ao stream RTSP em {camera_ip}. Tentando novamente...")
-            time.sleep(5)
-            cap.open(rtsp_url)
-            continue
-        else:
-            _, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-@app.get("/video_feed/{camera_id}")
-def video_feed(camera_id: int, db: Session = Depends(get_db)):
-    camera = crud.get_camera(db, camera_id=camera_id)
-    if not camera:
-        raise HTTPException(status_code=404, detail="Camera not found")
-    return StreamingResponse(generate_frames(camera.ip_address, camera.username, camera.password), media_type='multipart/x-mixed-replace; boundary=frame')
-
 @app.get("/cameras/{camera_id}", response_model=schemas.Camera)
 def read_camera(camera_id: int, db: Session = Depends(get_db)):
     db_camera = crud.get_camera(db, camera_id=camera_id)
@@ -73,6 +47,41 @@ def read_camera(camera_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Camera not found")
     return db_camera
 
+@app.get("/events/{camera_id}", response_model=list[schemas.Event])
+def read_events(camera_id: int, db: Session = Depends(get_db)):
+    return crud.get_events_for_camera(db, camera_id=camera_id)
+
+# =================================================================
+# LÓGICA DE VÍDEO REATIVADA
+# =================================================================
+def generate_frames(camera_ip, username, password):
+    # ATENÇÃO: Verifique se este formato de URL RTSP é o correto para o seu modelo de câmara Intelbras.
+    rtsp_url = f"rtsp://{username}:{password}@{camera_ip}:554/cam/realmonitor?channel=1&subtype=0"
+
+    cap = cv2.VideoCapture(rtsp_url)
+    if not cap.isOpened():
+        print(f"ERRO: Não foi possível abrir o stream RTSP em {rtsp_url}")
+
+    while True:
+        success, frame = cap.read()
+        if not success:
+            print(f"Falha ao ler frame do stream RTSP em {camera_ip}. A tentar reconectar...")
+            time.sleep(5)
+            cap.release()
+            cap.open(rtsp_url)
+            continue
+        else:
+            _, buffer = cv2.imencode('.jpg', frame)
+            frame_bytes = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+@app.get("/video_feed/{camera_id}")
+def video_feed(camera_id: int, db: Session = Depends(get_db)):
+    camera = crud.get_camera(db, camera_id=camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return StreamingResponse(generate_frames(camera.ip_address, camera.username, camera.password), media_type='multipart/x-mixed-replace; boundary=frame')
 
 def poll_camera_events(db_session_factory):
     while True:
@@ -88,5 +97,6 @@ def poll_camera_events(db_session_factory):
         db.close()
         time.sleep(10)
 
-#polling_thread = threading.Thread(target=poll_camera_events, args=(core.SessionLocal,), daemon=True)
-#polling_thread.start()
+# Deixamos a thread de eventos de IA comentada por agora para focar no vídeo
+polling_thread = threading.Thread(target=poll_camera_events, args=(core.SessionLocal,), daemon=True)
+polling_thread.start()
