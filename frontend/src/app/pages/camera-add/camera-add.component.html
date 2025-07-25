@@ -1,0 +1,41 @@
+<div class="form-container">
+  <header class="form-header">
+    <a routerLink="/dashboard" class="back-button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>Voltar</span>
+    </a>
+    <h1>Adicionar Nova Câmara</h1>
+  </header>
+
+  <form (ngSubmit)="onSubmit()" #cameraForm="ngForm" class="camera-form">
+    <div class="form-group">
+      <label for="name">Nome da Câmara</label>
+      <input type="text" id="name" name="name" [(ngModel)]="cameraModel.name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="ip_address">Endereço IP</label>
+      <input type="text" id="ip_address" name="ip_address" [(ngModel)]="cameraModel.ip_address" required>
+    </div>
+
+    <div class="form-group">
+      <label for="username">Utilizador</label>
+      <input type="text" id="username" name="username" [(ngModel)]="cameraModel.username" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" [(ngModel)]="cameraModel.password" required>
+    </div>
+
+    <div class="form-group">
+      <label for="camera_type">Tipo de Câmara</label>
+      <select id="camera_type" name="camera_type" [(ngModel)]="cameraModel.camera_type">
+        <option value="onvif">ONVIF</option>
+        <option value="bronze">Bronze (Apenas Ping)</option>
+      </select>
+    </div>
+
+    <button type="submit" class="submit-button" [disabled]="!cameraForm.form.valid">Adicionar Câmara</button>
+  </form>
+</div>

@@ -55,7 +55,6 @@ def read_events(camera_id: int, db: Session = Depends(get_db)):
 # LÓGICA DE VÍDEO REATIVADA
 # =================================================================
 def generate_frames(camera_ip, username, password):
-    # ATENÇÃO: Verifique se este formato de URL RTSP é o correto para o seu modelo de câmara Intelbras.
     rtsp_url = f"rtsp://{username}:{password}@{camera_ip}:554/cam/realmonitor?channel=1&subtype=0"
 
     cap = cv2.VideoCapture(rtsp_url)
@@ -97,6 +96,5 @@ def poll_camera_events(db_session_factory):
         db.close()
         time.sleep(10)
 
-# Deixamos a thread de eventos de IA comentada por agora para focar no vídeo
 polling_thread = threading.Thread(target=poll_camera_events, args=(core.SessionLocal,), daemon=True)
 polling_thread.start()

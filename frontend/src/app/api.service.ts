@@ -24,4 +24,7 @@ export class ApiService {
   readCamera(cameraId: number): Observable<any> {
   return this.http.get<any>(`${this.apiUrl}/cameras/${cameraId}`);
 }
+createCamera(cameraData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cameras/`, cameraData);
+  }
 }
