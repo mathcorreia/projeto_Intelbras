@@ -1,23 +1,23 @@
-# Usa uma imagem Python oficial.
 FROM python:3.10-slim
 
-# Define o diretório de trabalho no container.
 WORKDIR /app
 
-# ---- ADICIONE ESTA LINHA ----
-# Adiciona o diretório de trabalho ao PYTHONPATH para resolver importações.
-ENV PYTHONPATH="${PYTHONPATH}:/app"
-# ---- FIM DA MUDANÇA ----
+# --- CORREÇÃO AQUI ---
+# 'libgl1-mesa-glx' foi trocado por 'libgl1' que é a versão moderna
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+# ---------------------
 
-# Copia o arquivo de dependências e instala as dependências.
-COPY requirements.txt requirements.txt
+# Configura o caminho para imports absolutos funcionarem
+ENV PYTHONPATH="/app"
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o resto do código da aplicação para o diretório de trabalho.
 COPY . .
 
-# Expõe a porta que o Uvicorn irá usar.
 EXPOSE 8000
 
-# Comando para rodar a aplicação quando o container iniciar.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

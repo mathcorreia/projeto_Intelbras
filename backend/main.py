@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .database import models, core
-from .adapters import bronze_adapter, onvif_adapter
-from . import crud, schemas
+from database import models, core
+from adapters import bronze_adapter, onvif_adapter
+import crud
+import schemas
 
 models.Base.metadata.create_all(bind=core.engine)
 app = FastAPI()

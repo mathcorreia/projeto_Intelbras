@@ -3,3 +3,6 @@ uvicorn[standard]
 sqlalchemy
 onvif-zeep
 opencv-python 
+onvif-zeep
+zeep
+psycopg2-binary
