@@ -6,3 +6,4 @@ opencv-python
 onvif-zeep
 zeep
 psycopg2-binary
+requests

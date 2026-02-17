@@ -14,6 +14,19 @@ def create_camera(db: Session, camera: schemas.CameraCreate):
     db.commit()
     db.refresh(db_camera)
     return db_camera
+def delete_camera(db: Session, camera_id: int):
+    # 1. Encontra a câmara
+    db_camera = db.query(models.Camera).filter(models.Camera.id == camera_id).first()
+    
+    if db_camera:
+        # 2. Apaga também os eventos associados (opcional, mas recomendado para não dar erro)
+        db.query(models.Event).filter(models.Event.camera_id == camera_id).delete()
+        
+        # 3. Apaga a câmara
+        db.delete(db_camera)
+        db.commit()
+        return True
+    return False
 
 def get_events_for_camera(db: Session, camera_id: int):
     return db.query(models.Event).filter(models.Event.camera_id == camera_id).order_by(models.Event.timestamp.desc()).all()

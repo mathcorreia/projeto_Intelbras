@@ -11,6 +11,7 @@ from database import models, core
 from adapters import bronze_adapter, onvif_adapter
 import crud
 import schemas
+from adapters import intelbras_adapter
 
 models.Base.metadata.create_all(bind=core.engine)
 app = FastAPI()
@@ -24,7 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ADAPTER_MAP = {"bronze": bronze_adapter.BronzeCameraAdapter,"onvif": onvif_adapter.OnvifAdapter}
+ADAPTER_MAP = {"bronze": bronze_adapter.BronzeCameraAdapter,"onvif": onvif_adapter.OnvifAdapter, "intelbras": intelbras_adapter.IntelbrasAdapter}
 
 def get_db():
     db = core.SessionLocal()
@@ -37,6 +38,13 @@ def get_db():
 def create_camera(camera: schemas.CameraCreate, db: Session = Depends(get_db)):
     return crud.create_camera(db=db, camera=camera)
 
+@app.delete("/cameras/{camera_id}")
+def remove_camera(camera_id: int, db: Session = Depends(get_db)):
+    success = crud.delete_camera(db, camera_id=camera_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return {"message": "Camera deleted successfully"}
+
 @app.get("/cameras/", response_model=list[schemas.Camera])
 def read_cameras(db: Session = Depends(get_db)):
     return crud.get_cameras(db)
@@ -48,13 +56,14 @@ def read_camera(camera_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Camera not found")
     return db_camera
 
-@app.get("/events/{camera_id}", response_model=list[schemas.Event])
-def read_events(camera_id: int, db: Session = Depends(get_db)):
-    return crud.get_events_for_camera(db, camera_id=camera_id)
-
-# =================================================================
-# LÓGICA DE VÍDEO REATIVADA
-# =================================================================
+@app.get("/events/", response_model=list[schemas.Event])
+def read_all_events(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
+    """
+    Retorna os eventos mais recentes de TODAS as câmaras.
+    Usado pela página de Logs Gerais.
+    """
+    events = db.query(models.Event).order_by(models.Event.timestamp.desc()).offset(skip).limit(limit).all()
+    return events
 def generate_frames(camera_ip, username, password):
     rtsp_url = f"rtsp://{username}:{password}@{camera_ip}:554/cam/realmonitor?channel=1&subtype=0"
 
