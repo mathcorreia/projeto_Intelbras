@@ -34,30 +34,36 @@ export class CameraDetailComponent implements OnInit {
     this.videoFeedUrl = this.apiService.getVideoFeedUrl(id);
 
     // Busca os eventos a cada 5 segundos
+    // Busca os eventos a cada 5 segundos
     timer(0, 5000).subscribe(() => {
       this.apiService.getEventsForCamera(id).subscribe((eventsData: any[]) => {
         
+        const processedEvents: any[] = []; // Array temporário
+
         eventsData.forEach(event => {
-          // Se for um evento de contagem, atualiza a variável de contagem
           if (event.event_type === 'Contagem de Pessoas') {
-            const data = JSON.parse(event.event_data);
-            this.peopleCount = data.total;
+            try {
+              const data = JSON.parse(event.event_data);
+              this.peopleCount = data.total; // Atualiza contador
+            } catch(e) {}
           } 
-          // Se for outro tipo de evento, adiciona à lista para ser exibido
           else {
             if (event.event_data) {
-              event.parsed_data = JSON.parse(event.event_data);
+              try {
+                event.parsed_data = JSON.parse(event.event_data);
+              } catch (e) { event.parsed_data = {}; }
             }
-            this.events.unshift(event); // Adiciona o novo evento no início da lista
+            processedEvents.push(event); // Adiciona ao temporário
           }
         });
 
-        // Limita a lista de eventos para não ficar muito grande
-        if (this.events.length > 20) {
-          this.events.length = 20;
-        }
+        // ATENÇÃO: Substitui o array antigo pelo novo, em vez de fazer unshift/push
+        this.events = processedEvents; 
       });
     });
+
+        // Limita a lista de eventos para não ficar muito grande
+     
   }
 
   goBack(): void {

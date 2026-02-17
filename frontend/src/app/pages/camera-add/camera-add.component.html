@@ -4,7 +4,8 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       <span>Voltar</span>
     </a>
-    <h1>Adicionar Nova Câmara</h1>
+    
+    <h1>{{ isEditMode ? 'Editar Câmara' : 'Adicionar Nova Câmara' }}</h1>
   </header>
 
   <form (ngSubmit)="onSubmit()" #cameraForm="ngForm" class="camera-form">
@@ -32,10 +33,13 @@
       <label for="camera_type">Tipo de Câmara</label>
       <select id="camera_type" name="camera_type" [(ngModel)]="cameraModel.camera_type">
         <option value="onvif">ONVIF</option>
+        <option value="intelbras">Intelbras</option>
         <option value="bronze">Bronze (Apenas Ping)</option>
       </select>
     </div>
 
-    <button type="submit" class="submit-button" [disabled]="!cameraForm.form.valid">Adicionar Câmara</button>
+    <button type="submit" class="submit-button" [disabled]="!cameraForm.form.valid">
+      {{ isEditMode ? 'Salvar' : 'Adicionar Câmara' }}
+    </button>
   </form>
 </div>

@@ -1,0 +1,53 @@
+<div class="logs-container">
+  <header class="logs-header">
+    <a routerLink="/dashboard" class="back-button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>Voltar</span>
+    </a>
+    <h1>Histórico de Eventos</h1>
+  </header>
+
+  <div class="table-responsive">
+    <table class="logs-table">
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Câmara</th>
+          <th>Tipo</th>
+          <th>Detalhes (IA)</th>
+          <th>Imagem</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let event of events">
+          <td class="timestamp">{{ event.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+          <td class="cam-name">{{ event.camera_name }}</td>
+          <td>
+            <span class="badge" [ngClass]="{'alert': event.event_type === 'Pessoa Desconhecida'}">
+              {{ event.event_type }}
+            </span>
+          </td>
+          <td class="details">
+            <div *ngIf="event.parsed_data?.nome && event.parsed_data.nome !== 'Desconhecido'">
+              <strong>{{ event.parsed_data.nome }}</strong>
+            </div>
+            <div *ngIf="event.parsed_data?.feicao" class="meta-info">
+              {{ event.parsed_data.feicao.genero }}, {{ event.parsed_data.feicao.idade_aparente }}
+            </div>
+            <div *ngIf="event.parsed_data?.total">
+              Contagem: {{ event.parsed_data.total }}
+            </div>
+          </td>
+          <td>
+            <div class="img-thumb" *ngIf="event.face_image_path">
+              <img [src]="'http://localhost:8000/faces/' + event.face_image_path" alt="Face">
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="events.length === 0">
+          <td colspan="5" style="text-align: center; padding: 20px;">Nenhum evento registado.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

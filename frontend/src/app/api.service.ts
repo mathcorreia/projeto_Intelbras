@@ -18,6 +18,10 @@ export class ApiService {
     return this.http.get<any[]>(`${this.apiUrl}/events/${cameraId}`);
   }
 
+  getAllEvents(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/events/`);
+  }
+
   getVideoFeedUrl(cameraId: number): string {
     return `${this.apiUrl}/video_feed/${cameraId}`;
   }
@@ -26,5 +30,16 @@ export class ApiService {
 }
 createCamera(cameraData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/cameras/`, cameraData);
+  }
+  deleteCamera(cameraId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/cameras/${cameraId}`);
+  }
+  getCamera(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/cameras/${id}`);
+  }
+
+  // Enviar a atualização
+  updateCamera(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/cameras/${id}`, data);
   }
 }
