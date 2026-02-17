@@ -27,6 +27,21 @@ def delete_camera(db: Session, camera_id: int):
         db.commit()
         return True
     return False
+def update_camera(db: Session, camera_id: int, camera_data: schemas.CameraCreate):
+    # 1. Busca a câmara existente
+    db_camera = db.query(models.Camera).filter(models.Camera.id == camera_id).first()
+    
+    if db_camera:
+        # 2. Atualiza cada campo com os novos dados
+        # O model_dump() converte o objeto Pydantic num dicionário
+        for key, value in camera_data.model_dump().items():
+            setattr(db_camera, key, value)
+        
+        # 3. Salva
+        db.commit()
+        db.refresh(db_camera)
+        return db_camera
+    return None
 
 def get_events_for_camera(db: Session, camera_id: int):
     return db.query(models.Event).filter(models.Event.camera_id == camera_id).order_by(models.Event.timestamp.desc()).all()
