@@ -1,0 +1,85 @@
+<div class="hub-container">
+  
+  <header class="main-header">
+    <div class="brand">
+      <div class="logo-icon">🛡️</div>
+      <div class="titles">
+        <h1>SISTEMA INTEGRADO</h1>
+        <p>Central de Segurança Unificada • Enterprise V3</p>
+      </div>
+    </div>
+    
+    <div class="system-meta">
+      <div class="meta-item">
+        <span class="label">SERVIDOR</span>
+        <span class="value success">ONLINE</span>
+      </div>
+      <div class="divider"></div>
+      <div class="meta-item">
+        <span class="label">HORA LOCAL</span>
+        <span class="value time">{{ currentTime | date:'HH:mm:ss' }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="modules-grid">
+
+    <a routerLink="/dashboard" class="module-card vms">
+      <div class="card-bg"></div>
+      <div class="card-content">
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+        </div>
+        
+        <div class="text-group">
+          <h2>Vídeo Monitoramento</h2>
+          <p>Acesso à matriz de câmaras em tempo real.</p>
+        </div>
+        
+        <div class="live-status">
+          <span class="dot blue"></span>
+          {{ systemStatus.camerasOnline }} Câmaras Online
+        </div>
+      </div>
+    </a>
+
+    <a routerLink="/hub" class="module-card access">
+      <div class="card-bg"></div>
+      <div class="card-content">
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+        </div>
+        
+        <div class="text-group">
+          <h2>Acessos & I/O</h2>
+          <p>Gestão de Portões PPA, Control ID e Alarmes Intelbras.</p>
+        </div>
+        
+        <div class="live-status">
+          <span class="dot green"></span>
+          {{ systemStatus.doorsLocked }} Dispositivos Ativos
+        </div>
+      </div>
+    </a>
+
+    <a routerLink="/logs" class="module-card logs">
+      <div class="card-bg"></div>
+      <div class="card-content">
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        
+        <div class="text-group">
+          <h2>Logs do Sistema</h2>
+          <p>Histórico de eventos, acessos e erros.</p>
+        </div>
+        
+        <div class="live-status">
+          <span class="dot orange"></span>
+          Auditoria & Registos
+        </div>
+      </div>
+    </a>
+
+  </div>
+</div>

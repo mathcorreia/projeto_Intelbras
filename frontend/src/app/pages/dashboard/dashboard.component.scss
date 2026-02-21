@@ -1,308 +1,418 @@
+/* --- VARIÁVEIS --- */
 :host {
-  display: block;
-  --grid-gap: 15px;
-  /* MUDANÇA: Baixei de 400px para 300px. 
-     Isso faz com que caibam mais câmaras em monitores pequenos sem forçar a barra de rolagem horizontal */
-  --card-min-width: 300px; 
+    --bg-light: #f5f5f7;
+    --bg-dark: #050505;
+    --primary: #0071e3;
+    --primary-hover: #0077ed;
+    --danger: #ff3b30;
+    --text-main: #1d1d1f;
+    --text-sec: #86868b;
+    --border-light: #d2d2d7;
+    --card-radius: 14px;
 }
 
+/* --- CONTAINER PRINCIPAL --- */
 .dashboard-container {
-  padding: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
-  min-height: 100vh;
-  transition: all 0.3s ease;
+    padding: 30px;
+    padding-bottom: 80px; /* Espaço para o footer */
+    background-color: var(--bg-light);
+    min-height: 100vh;
+    transition: background-color 0.4s ease;
+    position: relative;
 
-  /* Estilo Modo Tela Cheia */
-  &.fullscreen {
-    padding: 0;
-    max-width: 100%;
-    background-color: #111;
-    height: 100vh;
-    overflow: hidden;
+    /* --- MODO TELA CHEIA (VMS / MATRIX) --- */
+    &.fullscreen-mode {
+        padding: 0; margin: 0;
+        background-color: var(--bg-dark);
+        height: 100vh; width: 100vw; overflow: hidden;
 
-    .camera-grid {
-      height: 100vh;
-      padding: 0;
-      gap: 5px;
-      align-content: center;
+        /* Grelha VMS: Ocupa tudo, sem espaços */
+        .camera-grid { 
+            height: 100vh; gap: 1px; padding: 1px;
+            display: grid; 
+            align-content: center;
+        }
+
+        /* Estilo Técnico dos Cards */
+        .camera-card { 
+            border-radius: 0; 
+            border: 1px solid #333; 
+            box-shadow: none; 
+            aspect-ratio: auto; /* Remove proporção forçada para preencher célula */
+            transform: none !important;
+            
+            /* Ajustes para muitas câmaras */
+            .hud-overlay { padding: 5px; }
+            .cam-name { font-size: 0.75rem; }
+            .people-counter { font-size: 0.8rem; }
+        }
+
+        /* Slots Vazios no Fullscreen */
+        .empty-slot-card {
+            border-radius: 0;
+            background: #111;
+            border: 1px solid #222;
+            opacity: 1;
+            .empty-content { font-size: 0.7rem; color: #444; }
+        }
+    }
+}
+
+/* --- HEADER (Modo Normal) --- */
+.dashboard-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    padding: 15px 25px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+}
+
+.header-brand {
+    display: flex; align-items: center; gap: 20px;
+    
+    .logo-area {
+        display: flex; align-items: center; gap: 12px;
+        h1 { font-size: 1.5rem; margin: 0; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; .thin { font-weight: 400; color: var(--text-sec); } }
+        .system-status-light { width: 10px; height: 10px; background-color: #34c759; border-radius: 50%; animation: pulse 2s infinite; }
     }
     
-    .camera-card { border-radius: 0; }
-  }
+    .divider { width: 1px; height: 24px; background: var(--border-light); }
+    
+    .system-info {
+        display: flex; flex-direction: column;
+        .status-text { font-size: 0.7rem; font-weight: 700; color: #34c759; text-transform: uppercase; letter-spacing: 0.5px; }
+        .meta-text { font-size: 0.8rem; color: var(--text-sec); }
+    }
 }
 
-/* Header */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 15px;
-
-  h1 { margin: 0; font-size: 1.8rem; color: #1d1d1f; }
-  p { margin: 0; color: #6e6e73; font-size: 0.9rem; }
+.header-actions {
+    display: flex; align-items: center; gap: 12px;
 }
 
-/* Botões do Header */
-.view-controls {
-  display: flex;
-  gap: 10px;
+/* --- ESTILO DA BUSCA (NOVO) --- */
+.search-wrapper {
+    position: relative;
+    margin-right: 10px;
+    
+    .search-icon {
+        position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+        stroke: #86868b; width: 16px; height: 16px;
+    }
+    
+    input {
+        padding: 10px 15px 10px 38px;
+        border-radius: 10px;
+        border: 1px solid #e5e5ea;
+        background: #fbfbfd;
+        font-size: 0.9rem;
+        width: 240px;
+        transition: all 0.2s;
+        outline: none;
+        color: var(--text-main);
+        
+        &:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,113,227,0.1);
+            width: 280px; /* Expande ao focar */
+        }
+        &::placeholder { color: #aeaeb2; }
+    }
+}
 
-  .btn {
+/* --- BOTÕES --- */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; text-decoration: none; border: none; transition: all 0.2s;
+    
+    &.btn-primary { 
+        background: var(--text-main); color: white; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        &:hover { background: #333; transform: translateY(-1px); }
+    }
+    
+    &.btn-outline { 
+        background: transparent; border: 1px solid var(--border-light); color: var(--text-main); 
+        &:hover { background: white; border-color: #999; }
+    }
+}
+
+/* --- GRELHA DE CÂMARAS (CORREÇÃO > 16) --- */
+.camera-grid {
+    display: grid; gap: 20px; width: 100%;
+    
+    /* Modo Responsivo (Galeria com Busca) */
+    &.grid-responsive {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-auto-rows: min-content;
+    }
+
+    /* --- MATRIZES FIXAS (FULLSCREEN) --- */
+    &.grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+    &.grid-4 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+    &.grid-9 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+    &.grid-16 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+    
+    /* AQUI ESTAVA O ERRO: Adicionando as classes que faltavam */
+    &.grid-25 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); }
+    &.grid-36 { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); }
+    &.grid-49 { 
+        grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr); 
+        .hud-overlay { display: none; } /* Opcional: esconde info para limpar a visão */
+    }
+    &.grid-64 { 
+        grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); 
+        .hud-overlay { display: none; }
+    }
+}
+
+/* --- CARD CÂMARA (Modo Normal) --- */
+.camera-card {
+    position: relative; background: black; 
+    border-radius: var(--card-radius); overflow: hidden;
+    aspect-ratio: 16/9; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+
+    &:hover { 
+        transform: scale(1.03); 
+        z-index: 10;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        .card-controls { opacity: 1; }
+    }
+    
+    &.alert-active { border: 2px solid var(--danger); animation: border-pulse 1s infinite; }
+    .video-stream { width: 100%; height: 100%; object-fit: cover; }
+}
+
+/* --- SLOT VAZIO (Modo Normal) --- */
+.empty-slot-card {
+    background: #ebebf0; border-radius: var(--card-radius); border: 2px dashed #d2d2d7;
+    display: flex; align-items: center; justify-content: center; aspect-ratio: 16/9;
+    color: #aeaeb2; font-weight: 600; letter-spacing: 0.5px;
+    &.hidden-in-normal { display: none; }
+}
+
+/* --- OVERLAYS & CONTROLS --- */
+.hud-overlay {
+    position: absolute; bottom: 0; width: 100%; padding: 12px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    display: flex; justify-content: space-between; align-items: flex-end;
+    color: white; pointer-events: none;
+    .cam-name { font-weight: 600; font-size: 0.95rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .people-counter { color: #4ade80; font-weight: 700; font-family: monospace; font-size: 1.1rem; }
+}
+
+.ai-badge {
+    position: absolute; top: 12px; left: 12px;
+    background: rgba(255,255,255,0.95); color: black; padding: 5px 10px;
+    border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    &.face-detected { background: #f59e0b; color: white; }
+}
+
+.card-controls {
+    position: absolute; top: 10px; right: 10px; display: flex; gap: 8px;
+    opacity: 0; transition: opacity 0.2s; z-index: 20;
+
+    .icon-btn {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px);
+        display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        svg { stroke: white; width: 18px; height: 18px; }
+        
+        &:hover { transform: scale(1.1); background: white; svg { stroke: black; } }
+        &.delete:hover { background: var(--danger); border-color: var(--danger); svg { stroke: white; } }
+    }
+}
+
+/* --- FOOTER PROFISSIONAL --- */
+.vms-footer {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
+    background: white; border-top: 1px solid var(--border-light);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 30px; font-size: 0.8rem; color: var(--text-sec);
+    
+    .footer-left .version { font-weight: 600; color: var(--text-main); background: #f2f2f7; padding: 2px 8px; border-radius: 4px; margin-right: 10px; }
+    .footer-center { display: flex; gap: 10px; a { text-decoration: none; color: inherit; &:hover { color: var(--primary); } } }
+    
+    .footer-right {
+        display: flex; gap: 20px;
+        .status-item { 
+            display: flex; gap: 8px; 
+            .label { font-weight: 700; font-size: 0.7rem; opacity: 0.7; }
+            .value { font-family: monospace; font-weight: 600; color: var(--text-main); &.latency { color: #34c759; } }
+        }
+    }
+}
+
+/* --- VMS CONTROLS FLUTUANTE --- */
+.vms-controls {
+    position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 9999;
+    opacity: 0; transition: opacity 0.3s;
+    &:hover, .dashboard-container.fullscreen-mode:hover & { opacity: 1; }
+}
+
+.vms-panel {
+    background: rgba(20,20,20,0.9); backdrop-filter: blur(15px);
+    padding: 8px 20px; border-radius: 30px; display: flex; align-items: center; gap: 12px;
+    border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    
+    .label { color: #888; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; }
+    .grid-buttons { display: flex; gap: 4px; }
+    .grid-buttons button { 
+        width: 28px; height: 28px; background: transparent; border: 1px solid #555; color: #ccc; 
+        border-radius: 6px; cursor: pointer; font-size: 0.75rem; 
+        &.active { background: var(--primary); border-color: var(--primary); color: white; }
+        &:hover:not(.active) { border-color: #999; color: white; }
+    }
+    .btn-exit { background: var(--danger); color: white; border: none; padding: 5px 14px; border-radius: 14px; font-weight: 700; font-size: 0.7rem; cursor: pointer; }
+}
+
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+@keyframes border-pulse { 0% { border-color: var(--danger); } 50% { border-color: transparent; } 100% { border-color: var(--danger); } }
+
+/* ==================================================================
+   CORREÇÃO DEFINITIVA DE TELA CHEIA INDIVIDUAL
+   Cole isto no final do seu arquivo dashboard.component.scss
+   ================================================================== */
+
+/* Pseudo-classe que atinge o elemento quando ele está em fullscreen */
+:host ::ng-deep .camera-card:fullscreen,
+:host ::ng-deep .camera-card:-webkit-full-screen,
+:host ::ng-deep .camera-card:-moz-full-screen,
+:host ::ng-deep .camera-card:-ms-fullscreen {
+    
+    /* 1. Ocupar o ecrã todo */
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    
+    /* 2. Fundo Preto Absoluto */
+    background-color: #000 !important;
+    
+    /* 3. Centralizar o vídeo */
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    /* 4. Garantir que está acima de tudo */
+    z-index: 2147483647 !important; /* Valor máximo permitido */
+
+    /* --- AJUSTE DO VÍDEO --- */
+    .video-stream {
+        width: 100% !important;
+        height: 100% !important;
+        /* 'contain' mostra o vídeo todo com barras pretas se necessário. 
+           'cover' preenche a tela mas pode cortar laterais. Escolha o seu preferido. */
+        object-fit: contain !important; 
+    }
+
+    /* --- AJUSTE DAS INFORMAÇÕES (HUD) --- */
+    .hud-overlay {
+        position: fixed !important; /* Fixa na tela, não no pai relativo */
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        padding: 30px !important;
+        background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%) !important;
+        z-index: 2147483648 !important; /* Acima do vídeo */
+        display: flex !important;
+        
+        .cam-name {
+            font-size: 2rem !important; /* Nome Grande */
+            color: white !important;
+        }
+        
+        .people-counter {
+            font-size: 2rem !important; /* Contador Grande */
+        }
+    }
+
+    /* --- AJUSTE DOS BOTÕES (Sair/Editar) --- */
+    .card-controls {
+        position: fixed !important;
+        top: 30px !important;
+        right: 30px !important;
+        opacity: 1 !important; /* Força a visibilidade */
+        z-index: 2147483649 !important;
+        
+        /* Aumenta os botões para serem clicáveis */
+        .icon-btn {
+            width: 50px !important;
+            height: 50px !important;
+            background: rgba(0,0,0,0.5) !important;
+            border: 2px solid rgba(255,255,255,0.3) !important;
+            
+            svg {
+                width: 24px !important;
+                height: 24px !important;
+            }
+        }
+    }
+    
+    /* Badge de IA */
+    .ai-badge {
+        position: fixed !important;
+        top: 30px !important;
+        left: 30px !important;
+        font-size: 1.2rem !important;
+        padding: 10px 20px !important;
+        z-index: 2147483649 !important;
+    }
+}
+/* BOTÃO DE VOLTAR NO HEADER */
+.btn-back-home {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 8px;
+    gap: 5px;
     text-decoration: none;
-    font-weight: 500;
+    color: #555; /* Cinza escuro para ser visível */
+    font-weight: 600;
     font-size: 0.9rem;
-    cursor: pointer;
-    border: none;
-    transition: 0.2s;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: #f0f0f5; /* Fundo cinza claro */
+    border: 1px solid #dcdce0;
+    margin-right: 15px; /* Espaço até o logo */
+    transition: all 0.2s ease;
 
-    svg { width: 18px; height: 18px; }
-  }
-
-  .btn-primary { background: #0071e3; color: white; &:hover { background: #005bb5; } }
-  .btn-secondary { background: #e5e5ea; color: #1d1d1f; &:hover { background: #d1d1d6; } }
-  .btn-dark { background: #1d1d1f; color: white; &:hover { background: #333; } }
-}
-
-/* --- GRID DE CÂMARAS --- */
-.camera-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width), 1fr));
-  gap: var(--grid-gap);
-}
-
-/* Cartão da Câmara */
-.camera-card {
-  position: relative;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  aspect-ratio: 16/9; /* Formato Widescreen */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: transform 0.2s, border-color 0.2s;
-
-  &:hover {
-    transform: scale(1.02);
-    z-index: 10;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  }
-
-  /* Animação de Alerta (Vermelho a piscar) */
-  &.alert-active {
-    border-color: #ef4444;
-    animation: pulse-border 1.5s infinite;
-  }
-}
-
-.video-stream {
-  width: 100%;
-  height: 100%;
-  
-object-fit: fill;  
-  display: block;
-  background-color: #000; /* Se a imagem for 4:3, preenche o resto com preto */
-}
-
-/* HUD (Overlay de Informações) */
-.hud-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 15px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  color: white;
-  pointer-events: none; /* Deixa clicar no vídeo por trás */
-}
-
-.cam-name { font-weight: 600; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.cam-ip { font-size: 0.8rem; opacity: 0.8; font-family: monospace; }
-
-.people-counter {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #4ade80; /* Verde Matrix */
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-/* Badge IA */
-.ai-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(0, 113, 227, 0.9);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  backdrop-filter: blur(4px);
-  animation: slide-in 0.3s ease-out;
-
-  &.face-detected {
-    background: #f59e0b; /* Laranja para faces */
-    color: black;
-  }
-}
-
-/* Botão Apagar */
-.delete-btn {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0; /* Invisível por padrão */
-  transition: 0.2s;
-
-  &:hover {
-    background: #ef4444;
-    transform: scale(1.1);
-  }
-}
-
-.camera-card {
-  position: relative;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  aspect-ratio: 16/9;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: transform 0.2s, border-color 0.2s;
-
-  &:hover {
-    transform: scale(1.02);
-    z-index: 10;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-    
-    /* Mostra os controlos no hover */
-    .card-controls { opacity: 1; }
-  }
-
-  &.alert-active {
-    border-color: #ef4444;
-    animation: pulse-border 1.5s infinite;
-  }
-}
-
-/* Área de Controlos (Botões flutuantes) */
-.card-controls {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  gap: 8px;
-  opacity: 0; /* Invisível até passar o rato */
-  transition: opacity 0.2s;
-  z-index: 20;
-}
-
-/* Estilo comum dos botões ícone */
-.icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: 0.2s;
-
-  &:hover { transform: scale(1.1); }
-  
-  /* --- AS CORES TÊM DE ESTAR AQUI DENTRO --- */
-  
-  /* Amarelo para Editar */
-  &.edit:hover { 
-    background: #f59e0b; 
-    border-color: #f59e0b; 
-  }
-
-  /* Vermelho para Apagar */
-  &.delete:hover { 
-    background: #ef4444; 
-    border-color: #ef4444; 
-  }
-
-  /* Azul para Expandir */
-  &.expand:hover { 
-    background: #0071e3; 
-    border-color: #0071e3; 
-  }
-}
-.camera-card:fullscreen, 
-.camera-card:-webkit-full-screen,
-.camera-card:-moz-full-screen {
-  background-color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default; /* Remove cursor de mão no vídeo */
-
-  /* Garante que o vídeo não corta nada no modo cinema */
-  .video-stream {
-    width: 100vw;
-    height: 100vh;
-    object-fit: contain;
-  }
-
-  /* FORÇA OS BOTÕES A APARECEREM NO TOPO */
-  .card-controls {
-    position: fixed; /* Muda para fixed para garantir posição no ecrã */
-    top: 30px;
-    left: 30px;
-    z-index: 2147483647; /* Z-Index máximo permitido pelos navegadores */
-    gap: 15px;
-    opacity: 0; /* Começa invisível */
-    transition: opacity 0.3s;
-    
-    /* Aumenta os botões para serem fáceis de clicar na TV/Monitor grande */
-    .icon-btn {
-      width: 50px;
-      height: 50px;
-      
-      svg { width: 24px; height: 24px; }
+    svg {
+        stroke: #333;
+        width: 20px;
+        height: 20px;
     }
-  }
 
-  /* Mostra os botões quando mexes o rato em qualquer lugar */
-  &:hover .card-controls {
-    opacity: 1;
-  }
+    /* Efeito ao passar o mouse */
+    &:hover {
+        background-color: #0071e3; /* Azul */
+        color: white;
+        border-color: #0071e3;
+        transform: translateX(-3px); /* Move levemente para a esquerda */
 
-  /* Ajusta o HUD para ficar bonito em tela grande */
-  .hud-overlay {
-    padding: 30px;
-    .cam-name { font-size: 2rem; }
-    .cam-ip { font-size: 1.2rem; }
-  }
+        svg { stroke: white; }
+    }
+}
+
+/* Ajuste do Header Brand para alinhar tudo */
+.header-brand {
+    display: flex;
+    align-items: center;
+    /* Removemos o gap fixo aqui para controlar melhor com margens */
+    
+    .logo-area {
+        display: flex; align-items: center; gap: 10px; cursor: pointer;
+        /* ... estilos do logo ... */
+    }
 }

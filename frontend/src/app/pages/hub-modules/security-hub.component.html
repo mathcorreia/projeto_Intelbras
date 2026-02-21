@@ -1,0 +1,58 @@
+<div class="hub-page">
+  <header class="hub-header">
+    <div class="title-section">
+      <h1>Security Hub <span class="badge">Enterprise</span></h1>
+      <p>Gestão de Dispositivos e Automação I/O</p>
+    </div>
+    <button routerLink="/dashboard" class="btn-back">Voltar ao Monitoramento</button>
+  </header>
+
+  <div class="modules-grid">
+    
+    <section class="module-card control-id">
+      <div class="module-icon">🆔</div>
+      <h2>Controle de Acesso (Control iD)</h2>
+      <div class="device-list">
+        <div *ngFor="let dev of idDevices" class="device-item">
+          <div class="info">
+            <span class="name">{{ dev.name }}</span>
+            <span class="ip">{{ dev.ip }}</span>
+          </div>
+          <button (click)="unlockDoor(dev.id)" class="action-btn unlock">LIBERAR</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="module-card ppa">
+      <div class="module-icon">🚗</div>
+      <h2>Automação de Portões (PPA)</h2>
+      <div class="device-list">
+        <div *ngFor="let gate of ppaGates" class="device-item">
+          <div class="info">
+            <span class="name">{{ gate.name }}</span>
+            <span class="status" [ngClass]="gate.status">{{ gate.status }}</span>
+          </div>
+          <button (click)="toggleGate(gate.id)" class="action-btn pulse">ACIONAR</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="module-card intelbras">
+      <div class="module-icon">🛡️</div>
+      <h2>Centrais de Alarme (Intelbras)</h2>
+      <div class="device-list">
+        <div *ngFor="let alarm of alarmCentrals" class="device-item">
+          <div class="info">
+            <span class="name">{{ alarm.name }}</span>
+            <span class="status">{{ alarm.status }}</span>
+          </div>
+          <div class="btn-group">
+            <button (click)="armAlarm(alarm.id)" class="action-btn arm">ARMAR</button>
+            <button class="action-btn disarm">DESARMAR</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>

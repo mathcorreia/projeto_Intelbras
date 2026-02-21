@@ -1,0 +1,73 @@
+.hub-page {
+  padding: 40px;
+  background-color: #0f0f11;
+  min-height: 100vh;
+  color: white;
+
+  .hub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 20px;
+
+    h1 { margin: 0; font-size: 2rem; .badge { font-size: 0.8rem; background: #0071e3; padding: 4px 8px; border-radius: 4px; vertical-align: middle; } }
+    p { color: #888; margin: 5px 0 0; }
+    .btn-back { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+  }
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.module-card {
+  background: #1c1c1e;
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid #2c2c2e;
+  transition: transform 0.3s;
+
+  &:hover { transform: translateY(-5px); border-color: #0071e3; }
+
+  .module-icon { font-size: 2rem; margin-bottom: 15px; }
+  h2 { font-size: 1.2rem; margin-bottom: 20px; color: #0071e3; }
+}
+
+.device-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2c2c2e;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+
+  .info {
+    display: flex;
+    flex-direction: column;
+    .name { font-weight: 600; font-size: 0.95rem; }
+    .ip, .status { font-size: 0.8rem; color: #888; }
+    .status.OPEN { color: #34c759; }
+  }
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &.unlock { background: #34c759; color: white; }
+  &.pulse { background: #0071e3; color: white; }
+  &.arm { background: #ff3b30; color: white; }
+  &.disarm { background: #333; color: white; margin-left: 5px; }
+  
+  &:hover { filter: brightness(1.2); }
+}

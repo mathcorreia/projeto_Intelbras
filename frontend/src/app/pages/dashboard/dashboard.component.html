@@ -1,75 +1,126 @@
-<div class="dashboard-container" [class.fullscreen]="isFullscreen">
+<div class="dashboard-container" [class.fullscreen-mode]="isFullscreen">
   
   <header class="dashboard-header" *ngIf="!isFullscreen">
-    <div class="header-left">
-      <h1>Centro de Comando</h1>
-      <p>Monitorização em Tempo Real</p>
-    </div>
+    
+    <div class="header-brand">
+        
+        <a routerLink="/" class="btn-back-home" title="Voltar ao Hub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            <span>Voltar</span>
+        </a>
 
-    <div class="view-controls">
-      <a routerLink="/logs" class="btn btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-        <span>Logs</span>
-      </a>
+        <div class="logo-area" (click)="resetView()" title="Resetar Visualização">
+            <div class="system-status-light"></div>
+            <h1>VMS <span class="thin">Ultra</span></h1>
+        </div>
 
-      <a routerLink="/camera-add" class="btn btn-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span>Adicionar</span>
+        <div class="divider"></div>
+
+        <div class="system-info">
+            <span class="status-text">Online</span>
+            <span class="meta-text">{{ cameras.length }} Canais</span>
+        </div>
+    </div> 
+    <div class="header-actions">
+      <div class="search-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Buscar..." [ngModel]="searchTerm" (ngModelChange)="onSearch($event)">
+      </div>
+
+      <a routerLink="/camera-add" class="btn btn-outline">
+        <span>+ Adicionar</span>
       </a>
-      
-      <button (click)="toggleFullscreen()" class="btn btn-dark">
+      <button (click)="toggleFullscreen()" class="btn btn-primary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-        <span>{{ isFullscreen ? 'Sair (Esc)' : 'Tela Cheia' }}</span>
+        <span>Monitor</span>
       </button>
     </div>
   </header>
-
-  <div class="camera-grid">
-    
-    <div *ngFor="let cam of cameras" 
-         class="camera-card" 
-         [id]="'camera-card-' + cam.id"
-         [class.alert-active]="cam.hasAlert"
-         (click)="goToDetail(cam.id)">
-
-      <img [src]="getVideoUrl(cam.id)" class="video-stream" alt="Stream">
-
-      <div class="card-controls">
-          <button class="icon-btn delete" (click)="deleteCamera(cam.id, $event)" title="Apagar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          </button>
-
-         <button class="icon-btn edit" (click)="editCamera(cam.id, $event)" title="Editar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-</button>
-
-          <button class="icon-btn expand" 
-        (click)="$event.stopPropagation(); toggleSingleCameraFullscreen(cam.id)" 
-        [title]="fullscreenCameraId === cam.id ? 'Sair da Tela Cheia' : 'Expandir'">
-  
-  <svg *ngIf="fullscreenCameraId !== cam.id" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-
-  <svg *ngIf="fullscreenCameraId === cam.id" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-
-</button>
-           
+  <div class="vms-controls" *ngIf="isFullscreen">
+    <div class="vms-panel">
+      <span class="label">MATRIZ:</span>
+      <div class="grid-buttons">
+        <button *ngFor="let size of gridOptions" 
+                [class.active]="selectedGridSize === size" 
+                (click)="setGridSize(size)">
+          {{ size }}
+        </button>
       </div>
-
-      <div class="ai-badge" *ngIf="cam.lastEvent" 
-           [ngClass]="{'face-detected': cam.lastEvent.event_type === 'Reconhecimento Facial'}">
-        {{ formatEventLabel(cam.lastEvent) }}
-      </div>
-
-      <div class="hud-overlay">
-        <div class="cam-info">
-          <div class="cam-name">{{ cam.name }}</div>
-          <div class="cam-ip">{{ cam.ip_address }}</div>
-        </div>
-        <div class="people-counter" *ngIf="cam.peopleCount > 0">
-          <span class="icon">👤</span> {{ cam.peopleCount }}
-        </div>
-      </div>
-
+      <div class="separator"></div>
+      <button class="btn-exit" (click)="toggleFullscreen()">SAIR (ESC)</button>
     </div>
   </div>
+
+  <div class="camera-grid" [ngClass]="isFullscreen ? 'grid-' + selectedGridSize : 'grid-responsive'">
+    
+    <div *ngFor="let slot of displaySlots" class="grid-slot">
+      
+      <div *ngIf="slot.type === 'camera'" 
+           class="camera-card" 
+           [id]="'camera-card-' + slot.data.id"
+           [class.alert-active]="slot.data.hasAlert"
+           (click)="goToDetail(slot.data.id)">
+
+        <img [src]="apiService.getVideoFeedUrl(slot.data.id)" class="video-stream" alt="Live">
+
+        <div class="card-controls" (click)="$event.stopPropagation()">
+            <button class="icon-btn delete" (click)="deleteCamera(slot.data.id, $event)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path></svg>
+            </button>
+            <button class="icon-btn edit" (click)="editCamera(slot.data.id, $event)">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="icon-btn expand" (click)="toggleSingleCameraFullscreen(slot.data.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+        </div>
+
+        <div class="ai-badge" *ngIf="slot.data.lastEvent" 
+             [ngClass]="{'face-detected': slot.data.lastEvent.event_type === 'Reconhecimento Facial'}">
+          {{ formatEventLabel(slot.data.lastEvent) }}
+        </div>
+
+        <div class="hud-overlay">
+          <div class="cam-info">
+            <div class="cam-name">{{ slot.data.name }}</div>
+          </div>
+          <div class="people-counter" *ngIf="slot.data.peopleCount > 0">
+            <span class="icon">👤</span> {{ slot.data.peopleCount }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="slot.type === 'empty'" class="empty-slot-card" [class.hidden-in-normal]="!isFullscreen">
+        <div class="empty-content">SINAL OFF</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="vms-footer" *ngIf="!isFullscreen">
+    <div class="footer-left">
+      <span class="version">{{ systemVersion }}</span>
+      <span class="copyright">© 2024 Security Corp</span>
+    </div>
+
+    <div class="footer-center">
+        <a href="#">Logs do Sistema</a>
+        <span class="dot">·</span>
+        <a href="#">Configurações de Rede</a>
+        <span class="dot">·</span>
+        <a href="#">Suporte Técnico</a>
+    </div>
+
+    <div class="footer-right">
+      <div class="status-item">
+        <span class="label">LATÊNCIA</span>
+        <span class="value latency">{{ serverLatency }}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="status-item">
+        <span class="label">SERVIDOR</span>
+        <span class="value time">{{ systemTime | date:'HH:mm:ss' }}</span>
+      </div>
+    </div>
+  </footer>
+
 </div>
