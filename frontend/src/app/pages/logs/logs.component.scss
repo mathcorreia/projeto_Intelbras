@@ -1,32 +1,72 @@
-.logs-container {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: var(--card-background-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
+/* --- VARIÁVEIS KOREON ENTERPRISE --- */
+:host {
+  --primary: #2d7fff; 
+  --bg-dark: #0f0f11;
+  --card-bg: #1c1c1e;
+  --border: #2c2c2e;
+  --text-main: #ffffff;
+  --text-sec: #888888;
+  --warning: #ff9f0a;
 }
 
+/* --- LAYOUT DA PÁGINA --- */
+.logs-page {
+  padding: 40px 40px 0 40px;
+  background-color: var(--bg-dark);
+  min-height: 100vh;
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  
+  /* Flexbox para empurrar o footer */
+  display: flex;
+  flex-direction: column;
+}
+
+.logs-container {
+  max-width: 1200px; /* Um pouco mais largo para acomodar bem a tabela */
+  margin: 0 auto 40px auto;
+  width: 100%;
+  padding: 40px;
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  flex-grow: 1; /* Preenche o espaço vazio antes do footer */
+}
+
+/* --- HEADER --- */
 .logs-header {
   display: flex;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   position: relative;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
   
-  h1 { flex-grow: 1; text-align: center; margin: 0; font-size: 1.8rem; }
+  h1 { flex-grow: 1; text-align: center; margin: 0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  color: var(--accent-color);
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  &:hover { background-color: var(--hover-color); }
-  span { margin-left: 6px; }
+/* Botão de voltar (Mesmo padrão) */
+.btn-back-modern {
+  position: absolute; left: 0; top: -5px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;
+  color: #e5e5ea; font-weight: 600; font-size: 0.9rem;
+  text-decoration: none; cursor: pointer; transition: all 0.3s ease;
+
+  svg { transition: transform 0.3s ease; }
+
+  &:hover {
+    background: var(--primary); border-color: var(--primary); color: white;
+    box-shadow: 0 4px 15px rgba(45, 127, 255, 0.3);
+    svg { transform: translateX(-4px); }
+  }
+}
+
+/* --- TABELA DE LOGS --- */
+.table-responsive {
+  overflow-x: auto;
 }
 
 .logs-table {
@@ -35,44 +75,84 @@
   
   th {
     text-align: left;
-    padding: 15px;
-    color: var(--secondary-text-color);
-    border-bottom: 1px solid var(--divider-color);
+    padding: 15px 20px;
+    color: var(--text-sec);
+    border-bottom: 2px solid var(--border);
     font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
   }
 
   td {
-    padding: 15px;
-    border-bottom: 1px solid var(--divider-color);
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    transition: background-color 0.2s ease;
   }
   
+  tbody tr {
+    transition: all 0.2s ease;
+    &:hover td { background-color: rgba(255, 255, 255, 0.03); }
+  }
+
   tr:last-child td { border-bottom: none; }
 }
 
-.timestamp { color: var(--secondary-text-color); font-size: 0.9rem; white-space: nowrap; }
-.cam-name { font-weight: 500; }
-.meta-info { font-size: 0.85rem; color: var(--secondary-text-color); }
+/* --- ELEMENTOS DA TABELA --- */
+.timestamp { color: var(--text-sec); font-size: 0.9rem; white-space: nowrap; font-family: monospace; }
+.cam-name { font-weight: 600; color: #e5e5ea; }
 
+.details {
+  display: flex; flex-direction: column; gap: 4px;
+  .person-name strong { color: var(--primary); font-size: 0.95rem; }
+  .meta-info { font-size: 0.85rem; color: var(--text-sec); }
+  .highlight { color: white; font-weight: 700; }
+}
+
+/* BADGES DE INTELIGÊNCIA ARTIFICIAL */
 .badge {
-  background-color: #e5f1ff;
-  color: var(--accent-color);
-  padding: 4px 10px;
+  background-color: rgba(45, 127, 255, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(45, 127, 255, 0.3);
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: inline-block;
 
   &.alert {
-    background-color: #fffbeb;
-    color: #b45309;
-    border: 1px solid #fcd34d;
+    background-color: rgba(255, 159, 10, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(255, 159, 10, 0.3);
   }
 }
 
+/* THUMBNAILS DAS FACES */
 .img-thumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
+  width: 45px; height: 45px;
+  border-radius: 50%; overflow: hidden;
+  border: 2px solid var(--border);
+  background-color: var(--bg-dark);
+  display: flex; align-items: center; justify-content: center;
+  
   img { width: 100%; height: 100%; object-fit: cover; }
+  
+  &.empty span { color: var(--text-sec); font-weight: 700; }
+}
+
+.empty-state {
+  text-align: center; padding: 40px !important; color: var(--text-sec); font-style: italic;
+}
+
+/* --- FOOTER NORMAL (BARRA DE ESTADO) --- */
+.vms-footer {
+  margin-left: -40px; margin-right: -40px; /* Estica até às bordas */
+  height: 50px; background: var(--card-bg); border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 40px; font-size: 0.8rem; color: #888888; flex-shrink: 0;
+  
+  .footer-left .version { font-weight: 700; color: #ffffff; background: #333; padding: 3px 8px; border-radius: 4px; margin-right: 10px; }
+  .footer-center { display: flex; gap: 10px; a { text-decoration: none; color: inherit; transition: 0.2s; &:hover { color: #ffffff; } } }
 }

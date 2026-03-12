@@ -2,126 +2,200 @@
 :host {
     --bg-dark: #050505;
     --card-bg: #111111;
-    --card-border: #222;
+    --card-border: #222222;
     --text-primary: #ffffff;
     --text-secondary: #888888;
     
-    --accent-vms: #0071e3;    /* Azul */
+    --accent-vms: #2d7fff;    /* Azul Koreon */
     --accent-access: #34c759; /* Verde */
     --accent-logs: #ff9f0a;   /* Laranja */
 }
 
+/* --- CONTAINER GERAL (CORRIGE O FOOTER) --- */
 .hub-container {
     min-height: 100vh;
     background-color: var(--bg-dark);
-    /* Um gradiente subtil no fundo para dar profundidade */
     background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 60%);
-    padding: 60px;
+    padding: 60px 60px 0 60px; /* Tirei o padding em baixo para o footer colar */
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    
+    /* ISTO É O QUE FAZ O FOOTER APARECER SEMPRE NO FUNDO */
+    display: flex;
+    flex-direction: column; 
 }
 
-/* --- HEADER --- */
+/* --- HEADER KOREON --- */
 .main-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 80px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 60px; 
     border-bottom: 1px solid rgba(255,255,255,0.1); 
     padding-bottom: 30px;
+    flex-wrap: wrap; 
+    gap: 20px;
     
+    .header-left {
+        display: flex; align-items: center; gap: 30px;
+    }
+
     .brand {
-        display: flex; gap: 20px; align-items: center;
-        .logo-icon { font-size: 3rem; }
-        .titles h1 { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
-        .titles p { margin: 5px 0 0 0; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        display: flex; gap: 15px; align-items: center;
+        .brand-logo { width: 55px; height: 55px; object-fit: contain; }
+        .titles h1 { 
+            margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; color: #fff;
+            .thin { font-weight: 300; color: var(--text-secondary); }
+        }
+        .titles p { margin: 4px 0 0 0; color: var(--accent-vms); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
     }
 
     .system-meta {
         display: flex; gap: 30px; align-items: center;
+        background: rgba(255,255,255,0.03); padding: 15px 25px; border-radius: 16px; border: 1px solid var(--card-border);
+        
         .divider { width: 1px; height: 30px; background: rgba(255,255,255,0.1); }
         .meta-item {
             display: flex; flex-direction: column; text-align: right;
-            .label { font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
-            .value { font-size: 1.3rem; font-family: monospace; font-weight: 600; }
-            .value.success { color: var(--accent-access); text-shadow: 0 0 10px rgba(52, 199, 89, 0.4); }
+            .label { font-size: 0.7rem; color: var(--text-secondary); font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+            .value { font-size: 1.2rem; font-family: monospace; font-weight: 700; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+            .value.success { color: var(--accent-access); }
             .value.time { color: var(--text-primary); }
+            
+            .status-dot { width: 10px; height: 10px; background: var(--accent-access); border-radius: 50%; box-shadow: 0 0 10px var(--accent-access); animation: pulse 2s infinite; }
         }
     }
 }
 
-/* --- GRID --- */
+/* --- GRELHA DE MÓDULOS --- */
 .modules-grid {
     display: grid;
-    /* Cards responsivos: min 350px, max expandem */
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 30px;
     max-width: 1400px;
     margin: 0 auto;
+    width: 100%;
+    flex-grow: 1; /* Isto empurra o footer para o fundo da página! */
 }
 
-/* --- CARTÕES --- */
+/* --- CARTÕES (MODULE CARDS) --- */
 .module-card {
-    position: relative;
-    background: var(--card-bg);
-    border-radius: 24px;
-    padding: 40px;
-    text-decoration: none;
-    color: white;
-    overflow: hidden;
-    border: 1px solid var(--card-border);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    display: flex; flex-direction: column;
-    height: 380px; /* Altura fixa para ficarem iguais */
-    cursor: pointer;
+    position: relative; background: var(--card-bg); border-radius: 24px; padding: 40px;
+    text-decoration: none; color: white; overflow: hidden; border: 1px solid var(--card-border);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; height: 380px; cursor: pointer;
 
-    /* Fundo decorativo subtil */
-    .card-bg {
-        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at top right, rgba(255,255,255,0.03), transparent 60%);
-        z-index: 0; transition: 0.3s;
-    }
-
+    .card-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top right, rgba(255,255,255,0.03), transparent 60%); z-index: 0; transition: 0.3s; }
     .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
 
-    /* EFEITO HOVER */
-    &:hover {
-        transform: translateY(-8px);
-        background: #161616;
-        
-        .icon-wrapper { transform: scale(1.1); }
-    }
-
-    /* Cores Específicas no Hover */
-    &.vms:hover { border-color: var(--accent-vms); box-shadow: 0 20px 50px rgba(0, 113, 227, 0.15); }
+    &:hover { transform: translateY(-8px); background: #161616; .icon-wrapper { transform: scale(1.1); } }
+    &.vms:hover { border-color: var(--accent-vms); box-shadow: 0 20px 50px rgba(45, 127, 255, 0.15); }
     &.access:hover { border-color: var(--accent-access); box-shadow: 0 20px 50px rgba(52, 199, 89, 0.15); }
     &.logs:hover { border-color: var(--accent-logs); box-shadow: 0 20px 50px rgba(255, 159, 10, 0.15); }
 
-    /* Ícone */
-    .icon-wrapper {
-        width: 70px; height: 70px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 18px;
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 30px;
-        transition: transform 0.3s;
-        svg { stroke: #e5e5e5; }
-    }
-
-    /* Texto */
+    .icon-wrapper { width: 70px; height: 70px; background: rgba(255,255,255,0.05); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; transition: transform 0.3s; svg { stroke: #e5e5e5; } }
     .text-group { flex-grow: 1; }
     h2 { font-size: 1.8rem; margin: 0 0 10px 0; font-weight: 700; }
     p { color: var(--text-secondary); margin: 0; font-size: 1rem; line-height: 1.5; max-width: 90%; }
-
-    /* Status no Rodapé */
+    
     .live-status {
-        margin-top: auto;
-        padding-top: 25px;
-        border-top: 1px solid rgba(255,255,255,0.08);
-        display: flex; align-items: center; gap: 10px;
-        font-weight: 600; font-size: 0.9rem; color: #ccc;
-        
+        margin-top: auto; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08);
+        display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; color: #cccccc;
         .dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
         .dot.blue { background: var(--accent-vms); color: var(--accent-vms); }
         .dot.green { background: var(--accent-access); color: var(--accent-access); }
         .dot.orange { background: var(--accent-logs); color: var(--accent-logs); }
     }
+}
+
+/* --- FOOTER ELABORADO --- */
+.hub-footer-elaborated {
+  margin-top: 80px; 
+  margin-left: -60px; 
+  margin-right: -60px;
+  padding: 40px 60px 20px 60px;
+  background: #080809; 
+  border-top: 1px solid rgba(255,255,255,0.05);
+
+  .footer-content {
+    display: flex; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    gap: 30px; 
+    margin-bottom: 30px; 
+    max-width: 1400px; 
+    margin-left: auto; 
+    margin-right: auto;
+  }
+
+  .brand-col {
+    display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 250px;
+    .footer-logo { width: 50px; height: 50px; object-fit: contain; }
+    .brand-name { font-size: 1.3rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
+    p { color: #888888; font-size: 0.95rem; margin: 0; }
+  }
+
+  /* Novas colunas de links e contatos */
+  .center-col, .contact-col {
+    display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 200px;
+    h4 { color: #ffffff; margin: 0 0 6px 0; font-size: 1rem; }
+  }
+
+  /* O centro fica 100% alinhado a meio no desktop */
+  .center-col { align-items: center; text-align: center; }
+  
+  /* A direita fica alinhada para colar na borda do ecrã */
+  .contact-col { align-items: flex-end; text-align: right; }
+
+  /* Estilo dos Links com Ícones */
+  .icon-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #aaaaaa;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    
+    svg { stroke: #666666; transition: stroke 0.2s ease; }
+    
+    &:hover {
+      color: var(--accent-vms); /* Acende com o Azul Koreon */
+      transform: translateY(-2px); /* Dá um saltinho ao passar o rato */
+      svg { stroke: var(--accent-vms); }
+    }
+  }
+
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+    padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05); color: #666666; font-size: 0.85rem; max-width: 1400px; margin: 0 auto;
+
+    .links {
+      display: flex; gap: 15px; align-items: center;
+      a { color: #888888; text-decoration: none; transition: 0.2s; &:hover { color: var(--accent-vms); } }
+      .version { background: #1c1c1e; padding: 4px 8px; border-radius: 6px; color: #aaaaaa; font-weight: 700; border: 1px solid #333; }
+    }
+  }
+}
+
+/* --- RESPONSIVIDADE (MOBILE) --- */
+@media (max-width: 768px) {
+  .hub-container { padding: 30px 20px 0 20px; }
+  
+  .main-header {
+    flex-direction: column; align-items: flex-start;
+    .system-meta { align-self: flex-start; width: 100%; justify-content: space-between; }
+    .meta-item { text-align: left; .value { justify-content: flex-start; } }
+  }
+
+  .module-card { height: auto; min-height: 320px; }
+  
+  .hub-footer-elaborated {
+    margin-left: -20px; margin-right: -20px; padding: 30px 20px 20px 20px;
+    
+    /* No telemóvel, alinhar tudo à esquerda para ficar perfeito e não cortar o texto */
+    .center-col, .contact-col { align-items: flex-start; text-align: left; }
+    .icon-link:hover { transform: translateX(4px); /* Em vez de saltar, desliza para a direita no mobile */ }
+    
+    .footer-bottom { flex-direction: column; text-align: center; }
+  }
 }

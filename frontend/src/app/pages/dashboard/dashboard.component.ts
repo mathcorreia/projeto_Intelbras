@@ -139,7 +139,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     });
   }
-
+onPtzAction(cameraId: number, direction: string, action: 'start' | 'stop', event: Event) {
+    event.stopPropagation(); // Impede que o clique abra a câmara em ecrã inteiro
+    
+    this.apiService.controlPTZ(cameraId, direction, action).subscribe({
+      next: () => console.log(`PTZ: ${direction} -> ${action}`),
+      error: (err) => console.error('Erro ao mover câmara:', err)
+    });
+  }
  // --- FULLSCREEN INDIVIDUAL ---
   // --- DETEÇÃO DE MUDANÇA DE TELA (CORRIGIDO) ---
   @HostListener('document:fullscreenchange', ['$event'])

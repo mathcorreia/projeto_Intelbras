@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { ApiService } from '../../api.service'; // Use seu serviço para chamar o Python
 
 @Component({
   selector: 'app-security-hub',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './security-hub.component.html',
   styleUrls: ['./security-hub.component.scss']
 })

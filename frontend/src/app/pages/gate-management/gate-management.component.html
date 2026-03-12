@@ -1,0 +1,160 @@
+<div class="access-page">
+  
+  <header class="dashboard-header">
+    <div class="header-brand">
+      <a routerLink="/hub" class="btn-back-modern" title="Voltar ao Hub">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </a>
+      <div class="logo-area">
+        <img src="letra.png" alt="Koreon Logo" style="width: 28px; height: 28px; object-fit: contain;">
+        <h1>AUTOMAÇÃO <span class="thin">PPA / INTELBRAS</span></h1>
+        <div class="system-status-light"></div>
+      </div>
+      <div class="divider"></div>
+      
+      <div class="view-switcher">
+        <button [class.active]="currentView === 'live'" (click)="switchView('live')">🔴 Comando IoT</button>
+        <button [class.active]="currentView === 'database'" (click)="switchView('database')">⚙️ Módulos de Rede</button>
+      </div>
+    </div> 
+
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openGateForm()">+ Adicionar Módulo IOT</button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    
+    <div class="gates-live-container" *ngIf="currentView === 'live'">
+      
+      <div class="gates-control-grid">
+        <div class="gate-card" *ngFor="let gate of gates" [ngClass]="gate.status.toLowerCase()">
+          
+          <div class="gate-header">
+            <span class="gate-brand">{{ gate.brand }}</span>
+            <div class="status-badge">
+              <span class="dot"></span>
+              {{ gate.status === 'CLOSED' ? 'FECHADO' : (gate.status === 'OPEN' ? 'ABERTO' : 'EM MOVIMENTO') }}
+            </div>
+          </div>
+          
+          <div class="gate-info">
+            <h3>{{ gate.name }}</h3>
+            <p>{{ gate.lastAction }}</p>
+          </div>
+
+          <button class="btn-trigger" (click)="triggerGate(gate)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+            ACIONAR
+          </button>
+        </div>
+      </div>
+
+      <div class="gate-logs-panel">
+        <div class="panel-header">
+          <h3>Histórico de Acionamentos</h3>
+        </div>
+        <div class="logs-feed">
+          <div class="log-item" *ngFor="let log of liveLogs" [ngClass]="log.type">
+            <div class="log-icon">
+              <span *ngIf="log.type === 'trigger'">⚙️</span>
+              <span *ngIf="log.type === 'lpr'">📷</span>
+              <span *ngIf="log.type === 'alert'">⚠️</span>
+            </div>
+            <div class="log-data">
+              <strong>{{ log.action }}</strong>
+              <span class="user">{{ log.user }}</span>
+              <span class="device">{{ log.device }}</span>
+            </div>
+            <div class="log-time">{{ log.time }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="users-db-container" *ngIf="currentView === 'database'">
+      <div class="table-card">
+        <table class="koreon-table">
+          <thead>
+            <tr>
+              <th>Status Rede</th>
+              <th>Nome / Local</th>
+              <th>Marca / Hardware</th>
+              <th>Endereço IP / API</th>
+              <th>Sensor de Estado</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let gate of gates">
+              <td><span class="network-status online">Online</span></td>
+              <td><strong>{{ gate.name }}</strong></td>
+              <td><span class="access-method">{{ gate.brand }} IOT</span></td>
+              <td class="monospace">{{ gate.ip }}</td>
+              <td><span class="status-badge permanent">Ativo</span></td>
+              <td>
+                <button class="btn-action edit" (click)="editGate(gate)">✏️</button>
+                <button class="btn-action delete">🗑️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="vms-footer">
+    <div class="footer-left"><img src="favicon.png" alt="Koreon Tech" style="width: 24px; height: 24px; margin-right: 10px; vertical-align: middle;"><span class="version">v3.5 Enterprise</span></div>
+  </footer>
+
+  <div class="koreon-overlay" *ngIf="showGateForm" (click)="closeGateForm()">
+    <div class="form-modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2>{{ isEditMode ? 'Editar Módulo' : 'Novo Módulo IoT' }}</h2>
+          <p class="modal-subtitle">Configuração de relé e sensor de fim de curso</p>
+        </div>
+        <button class="btn-close" (click)="closeGateForm()">✕</button>
+      </div>
+      
+      <form class="koreon-form">
+        <h4 class="section-title">Hardware e Rede</h4>
+        <div class="form-row">
+          <div class="form-group flex-2"><label>Nome do Portão</label><input type="text" [(ngModel)]="newGate.name" name="gname" placeholder="Ex: Garagem Principal"></div>
+          <div class="form-group flex-1"><label>Fabricante</label>
+            <select [(ngModel)]="newGate.brand" name="gbrand">
+              <option>PPA Contatto Wi-Fi</option><option>Intelbras Izy Smart</option><option>Módulo ESP32 Genérico</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-2"><label>Endereço IP / ID Nuvem</label><input type="text" [(ngModel)]="newGate.ip" name="gip" placeholder="192.168.1.x ou Tuya ID"></div>
+          <div class="form-group flex-1"><label>Localização</label><input type="text" [(ngModel)]="newGate.location" name="gloc" placeholder="Ex: Subsolo"></div>
+        </div>
+
+        <h4 class="section-title">Parâmetros de Operação</h4>
+        <div class="form-row">
+          <div class="form-group flex-1"><label>Tempo de Pulso do Relé</label>
+            <select [(ngModel)]="newGate.pulseTime" name="gpulse">
+              <option value="1">1 Segundo (Padrão)</option><option value="3">3 Segundos</option><option value="hold">Reter (Abre/Fecha)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1"><label>Sensor Magnético (Fim de Curso)</label>
+            <select [(ngModel)]="newGate.sensorEnabled" name="gsens">
+              <option [ngValue]="true">Ligado (Lê estado Aberto/Fechado)</option>
+              <option [ngValue]="false">Desligado (Apenas pulso cego)</option>
+            </select>
+          </div>
+        </div>
+      </form>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" (click)="closeGateForm()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveGate()">{{ isEditMode ? 'Guardar Configuração' : 'Testar Comunicação e Adicionar' }}</button>
+      </div>
+    </div>
+  </div>
+
+</div>

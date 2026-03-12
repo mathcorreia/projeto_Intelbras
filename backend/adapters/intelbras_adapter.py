@@ -19,6 +19,29 @@ class IntelbrasAdapter(CameraAdapter):
         dt = datetime.datetime.fromtimestamp(timestamp)
         return dt.strftime("%Y-%-m-%-d %H:%M:%S")
 
+    def get_system_logs(self, start_time, end_time, count=50):
+        """
+        Puxa os logs internos da câmara Intelbras via API CGI.
+        """
+        params = {
+            "action": "getLog",
+            "startTime": start_time,
+            "endTime": end_time,
+            "count": count
+        }
+        try:
+            url = f"http://{self.ip}/cgi-bin/logManager.cgi"
+            # As câmaras Intelbras usam Digest Authentication
+            auth = HTTPDigestAuth(self.username, self.password)
+            
+            response = requests.get(url, auth=auth, params=params, timeout=5)
+            
+            if response.status_code == 200:
+                return response.text.split('\r\n')
+            return []
+        except Exception as e:
+            print(f"Erro ao buscar logs da Intelbras {self.ip}: {e}")
+            return []
     def get_events(self):
         current_time = int(time.time())
         start_time_str = self._get_time_str(self.last_check_time)

@@ -1,0 +1,162 @@
+<div class="access-page">
+  
+  <header class="dashboard-header">
+    <div class="header-brand">
+      <a routerLink="/hub" class="btn-back-modern" title="Voltar ao Hub">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </a>
+      <div class="logo-area">
+        <img src="letra.png" alt="Koreon Logo" style="width: 28px; height: 28px; object-fit: contain;">
+        <h1>CONTROL <span class="thin">iD</span></h1>
+        <div class="system-status-light"></div>
+      </div>
+      <div class="divider"></div>
+      
+      <div class="view-switcher">
+        <button [class.active]="currentView === 'live'" (click)="switchView('live')">🔴 Live Feed</button>
+        <button [class.active]="currentView === 'users'" (click)="switchView('users')">👥 Base de Dados</button>
+      </div>
+    </div> 
+
+    <div class="header-actions">
+      <div class="search-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" placeholder="Pesquisar...">
+      </div>
+      <button class="btn btn-outline" (click)="openDeviceForm()">+ Dispositivo</button>
+      <button class="btn btn-primary" (click)="openUserForm()">+ Usuário</button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    
+    <div class="live-view-container" *ngIf="currentView === 'live'">
+      <div class="quick-actions-bar">
+        <h3>Abertura Rápida:</h3>
+        <button class="door-btn" (click)="quickOpen('Catraca')">🔓 Catraca Principal</button>
+        <button class="door-btn" (click)="quickOpen('Servidores')">🔓 Porta Servidores</button>
+        <button class="door-btn ppa" (click)="quickOpen('Portão')">🚗 Portão Garagem</button>
+      </div>
+
+      <div class="live-feed-full">
+        <div class="feed-item" *ngFor="let log of liveLogs" [ngClass]="log.type" (click)="openLogDetails(log)">
+          <div class="event-time">{{ log.time }}</div>
+          <div class="event-icon" [ngClass]="log.type">
+            <svg *ngIf="log.type === 'in'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <svg *ngIf="log.type === 'out'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <svg *ngIf="log.type === 'block'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+          </div>
+          <div class="event-photo" [class.empty]="!log.photo"><img *ngIf="log.photo" [src]="log.photo" alt="Face"><span *ngIf="!log.photo">?</span></div>
+          <div class="event-details"><span class="person-name">{{ log.name }}</span><span class="event-action">{{ log.action }} <span class="method">via {{ log.method }}</span></span></div>
+          <div class="event-device">{{ log.device }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="users-db-container" *ngIf="currentView === 'users'">
+      <div class="table-card">
+        <table class="koreon-table">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nome / CPF</th>
+              <th>Departamento</th>
+              <th>Método de Acesso</th>
+              <th>Status / Permissão</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of registeredUsers">
+              <td>
+                <div class="user-avatar" [class.empty]="!user.photo">
+                  <img *ngIf="user.photo" [src]="user.photo" alt="Face">
+                  <span *ngIf="!user.photo">SD</span>
+                </div>
+              </td>
+              <td>
+                <div class="user-ident">
+                  <strong>{{ user.name }}</strong>
+                  <span class="cpf">{{ user.cpf }}</span>
+                </div>
+              </td>
+              <td>{{ user.department }}</td>
+              <td><span class="access-method">{{ user.accessType }}</span></td>
+              <td>
+                <span class="status-badge permanent" *ngIf="user.permissionLevel !== 'Visitante (Temporário)'">{{ user.permissionLevel }}</span>
+                <span class="status-badge temporary" *ngIf="user.permissionLevel === 'Visitante (Temporário)'">Temporário até {{ user.validity }}</span>
+              </td>
+              <td>
+                <button class="btn-action edit" (click)="editUser(user)" title="Editar Usuário">✏️</button>
+                <button class="btn-action delete" title="Bloquear / Excluir">🗑️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="vms-footer">
+    <div class="footer-left"><img src="favicon.png" alt="Koreon Tech" style="width: 24px; height: 24px; margin-right: 10px; vertical-align: middle;"><span class="version">v3.5 Enterprise</span></div>
+  </footer>
+
+  <div class="koreon-overlay" *ngIf="selectedLog" (click)="closeLogDetails()"> ... (mantém o código igual ao anterior) ... </div>
+  <div class="koreon-overlay" *ngIf="showDeviceForm" (click)="closeDeviceForm()"> ... (mantém o código igual ao anterior) ... </div>
+
+
+  <div class="koreon-overlay" *ngIf="showUserForm" (click)="closeUserForm()">
+    <div class="form-modal-content wide" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2>{{ isEditMode ? 'Editar Utilizador' : 'Cadastro de Utilizador' }}</h2>
+          <p class="modal-subtitle">Biometria, permissões e credenciais</p>
+        </div>
+        <button class="btn-close" (click)="closeUserForm()">✕</button>
+      </div>
+      
+      <form class="koreon-form split-form">
+        <div class="form-left-col">
+          <h4 class="section-title">Dados Pessoais</h4>
+          <div class="form-group"><label>Nome Completo</label><input type="text" [(ngModel)]="newUser.name" name="n1" placeholder="Ex: João Silva"></div>
+          <div class="form-row">
+            <div class="form-group flex-1"><label>Departamento</label><input type="text" [(ngModel)]="newUser.department" name="n2"></div>
+            <div class="form-group flex-1"><label>CPF / ID</label><input type="text" [(ngModel)]="newUser.cpf" name="ncpf"></div>
+          </div>
+
+          <h4 class="section-title">Credenciais de Acesso</h4>
+          <div class="form-row">
+            <div class="form-group flex-1"><label>Modo de Acesso</label><select [(ngModel)]="newUser.accessType" name="n3"><option>Reconhecimento Facial</option><option>Cartão RFID</option><option>Senha</option></select></div>
+            <div class="form-group flex-1"><label>Código RFID (Se houver)</label><input type="text" [(ngModel)]="newUser.rfidCode" name="nrfid" placeholder="Ex: 0012345"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1"><label>Nível de Permissão</label><select [(ngModel)]="newUser.permissionLevel" name="n4"><option>Acesso Total (24h)</option><option>Horário Comercial</option><option>Visitante (Temporário)</option></select></div>
+            <div class="form-group flex-1" *ngIf="newUser.permissionLevel === 'Visitante (Temporário)'"><label>Válido até</label><input type="date" [(ngModel)]="newUser.validity" name="nval"></div>
+          </div>
+        </div>
+
+        <div class="form-right-col">
+          <h4 class="section-title">Biometria Facial</h4>
+          <div class="face-capture-area tall" [class.has-photo]="newUser.photo">
+            <img *ngIf="newUser.photo" [src]="newUser.photo" alt="Biometria Atual" style="width: 100%; border-radius: 8px;">
+            
+            <div class="capture-box" *ngIf="!newUser.photo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+              <span>Ligar Webcam</span>
+              <p class="hint">Ou clique para fazer upload.</p>
+            </div>
+            
+            <button *ngIf="newUser.photo" class="btn-retake">Atualizar Foto</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" (click)="closeUserForm()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveUser()">{{ isEditMode ? 'Guardar Alterações' : 'Gravar Utilizador' }}</button>
+      </div>
+    </div>
+  </div>
+
+</div>

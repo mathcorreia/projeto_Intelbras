@@ -1,0 +1,120 @@
+<div class="access-page">
+  
+  <header class="dashboard-header">
+    <div class="header-brand">
+      <a routerLink="/hub" class="btn-back-modern" title="Voltar ao Hub"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></a>
+      <div class="logo-area"><img src="letra.png" alt="Koreon Logo" style="width: 28px; height: 28px; object-fit: contain;"><h1>ALARMES <span class="thin">INTELBRAS</span></h1><div class="system-status-light"></div></div>
+      <div class="divider"></div>
+      
+      <div class="view-switcher">
+        <button [class.active]="currentView === 'live'" (click)="switchView('live')">🔴 Monitorização</button>
+        <button [class.active]="currentView === 'database'" (click)="switchView('database')">⚙️ Centrais (Rede)</button>
+      </div>
+    </div> 
+
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openAlarmForm()">+ Adicionar Central</button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    
+    <div class="alarms-live-container" *ngIf="currentView === 'live'">
+      
+      <div class="control-grid">
+        <div class="alarm-panel-card">
+          <div class="panel-header" [ngClass]="alarms[0].status.toLowerCase()">
+            <div class="info">
+              <h3>{{ alarms[0].name }}</h3>
+              <span class="status-badge">{{ alarms[0].status === 'ARMED' ? 'ARMADO' : 'DESARMADO' }}</span>
+            </div>
+            <div class="main-actions">
+              <button class="btn-arm" (click)="armSystem(1)">ARMAR</button>
+              <button class="btn-disarm" (click)="disarmSystem(1)">DESARMAR</button>
+            </div>
+          </div>
+          
+          <div class="zones-list">
+            <h4>Status das Zonas (Sensores)</h4>
+            <div class="zone-item" *ngFor="let z of zones" [ngClass]="{'open': z.status === 'OPEN', 'bypassed': z.bypassed}">
+              <div class="z-info">
+                <span class="z-id">{{ z.id }}</span>
+                <span class="z-name">{{ z.name }}</span>
+                <span class="z-state">{{ z.bypassed ? 'ISOLADA' : (z.status === 'OPEN' ? 'ABERTA (VIOLADA)' : 'NORMAL') }}</span>
+              </div>
+              <button class="btn-bypass" (click)="bypassZone(z)">{{ z.bypassed ? 'REATIVAR' : 'ISOLAR' }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="logs-panel">
+        <div class="panel-title"><h3>Histórico da Central</h3></div>
+        <div class="logs-feed">
+          <div class="log-item" *ngFor="let log of liveLogs" [ngClass]="log.type">
+            <div class="log-icon">
+              <span *ngIf="log.type === 'alert'">🚨</span><span *ngIf="log.type === 'arm'">🔒</span><span *ngIf="log.type === 'disarm'">🔓</span>
+            </div>
+            <div class="log-data">
+              <strong>{{ log.action }}</strong>
+              <span class="zone">{{ log.zone }}</span>
+              <span class="device">{{ log.device }}</span>
+            </div>
+            <div class="log-time">{{ log.time }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="users-db-container" *ngIf="currentView === 'database'">
+      <div class="table-card">
+        <table class="koreon-table">
+          <thead><tr><th>Status</th><th>Nome da Central</th><th>IP / Rede</th><th>Zonas Config.</th><th>Ações</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let a of alarms">
+              <td><span class="network-status online">Online</span></td>
+              <td><strong>{{ a.name }}</strong></td>
+              <td class="monospace">{{ a.ip }}</td>
+              <td>{{ a.zonesOnline }} Zonas</td>
+              <td>
+                <button class="btn-action edit" (click)="editAlarm(a)">✏️</button>
+                <button class="btn-action delete">🗑️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="vms-footer"><div class="footer-left"><img src="favicon.png" alt="Koreon Tech" style="width: 24px; height: 24px; margin-right: 10px; vertical-align: middle;"><span class="version">v3.5 Enterprise</span></div></footer>
+
+  <div class="koreon-overlay" *ngIf="showAlarmForm" (click)="closeAlarmForm()">
+    <div class="form-modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div><h2>{{ isEditMode ? 'Editar Central' : 'Adicionar Central' }}</h2><p class="modal-subtitle">Comunicação e Zonas</p></div>
+        <button class="btn-close" (click)="closeAlarmForm()">✕</button>
+      </div>
+      
+      <form class="koreon-form">
+        <div class="form-row">
+          <div class="form-group flex-2"><label>Nome da Central</label><input type="text" [(ngModel)]="newAlarm.name" name="aname" placeholder="Ex: Central Matriz"></div>
+          <div class="form-group flex-1"><label>Modelo</label><select [(ngModel)]="newAlarm.model" name="amodel"><option>Intelbras AMT 8000</option><option>Intelbras AMT 2018 E</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1"><label>Endereço IP</label><input type="text" [(ngModel)]="newAlarm.ip" name="aip"></div>
+          <div class="form-group flex-1"><label>Porta</label><input type="text" [(ngModel)]="newAlarm.port" name="aport"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1"><label>Senha do Instalador / Acesso</label><input type="password" [(ngModel)]="newAlarm.password" name="apwd" placeholder="****"></div>
+          <div class="form-group flex-1"><label>Qtd. de Zonas Mapeadas</label><input type="number" [(ngModel)]="newAlarm.zonesCount" name="azones"></div>
+        </div>
+      </form>
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="closeAlarmForm()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveAlarm()">Gravar</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timedelta
 import threading
 import cv2
 from fastapi import FastAPI, Depends, HTTPException
@@ -7,8 +8,9 @@ from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from adapters.mibo_driver import MiboDriver
 from database import models, core
-from adapters import bronze_adapter, onvif_adapter, intelbras_adapter
+from adapters import bronze_adapter, onvif_adapter, intelbras_adapter, mibo_driver
 import crud
 import schemas
 import os
@@ -30,7 +32,8 @@ app.add_middleware(
 ADAPTER_MAP = {
     "bronze": bronze_adapter.BronzeCameraAdapter,
     "onvif": onvif_adapter.OnvifAdapter, 
-    "intelbras": intelbras_adapter.IntelbrasAdapter
+    "intelbras": intelbras_adapter.IntelbrasAdapter,
+    "mibo": mibo_driver.MiboDriver
 }
 
 def get_db():
@@ -69,6 +72,108 @@ def read_camera(camera_id: int, db: Session = Depends(get_db)):
     if db_camera is None:
         raise HTTPException(status_code=404, detail="Camera not found")
     return db_camera
+
+@app.get("/cameras/{camera_id}/mibo/audio")
+def get_camera_audio_config(camera_id: int, db: Session = Depends(get_db)):
+    camera = crud.get_camera(db, camera_id=camera_id)
+    if not camera or camera.camera_type not in ["mibo", "intelbras"]:
+        raise HTTPException(status_code=400, detail="Câmara inválida ou não suporta configs avançadas")
+    
+    driver = mibo_driver.MiboDriver(camera.ip_address, camera.username, camera.password)
+    config = driver.get_audio_config()
+    return {"audio_config": config}
+
+# Rota do Volume Corrigida (Cuidado com o int() para evitar o erro 500)
+# Rota do Volume - Elegante e à prova de falhas
+@app.post("/cameras/{camera_id}/mibo/audio/volume")
+def set_camera_volume(camera_id: int, payload: dict, db: Session = Depends(get_db)):
+    volume = int(payload.get("volume", 50))
+    camera = crud.get_camera(db, camera_id=camera_id)
+    if not camera: raise HTTPException(status_code=404, detail="Câmara não encontrada")
+    
+    driver = mibo_driver.MiboDriver(camera.ip_address, camera.username, camera.password)
+    success = driver.set_audio_volume(volume)
+    
+    if not success:
+        # A câmara recusou, mas não damos erro 500 para não quebrar o Frontend
+        return {"message": "Aviso: Hardware bloqueia controlo de volume externo", "success": False}
+        
+    return {"message": f"Volume alterado para {volume}%", "success": True}
+
+
+# Rota do Switch Liga/Desliga - Elegante e à prova de falhas
+@app.post("/cameras/{camera_id}/mibo/audio/toggle")
+def toggle_camera_audio(camera_id: int, payload: dict, db: Session = Depends(get_db)):
+    enable = payload.get("enable", True)
+    camera = crud.get_camera(db, camera_id=camera_id)
+    if not camera: raise HTTPException(status_code=404, detail="Câmara não encontrada")
+
+    driver = mibo_driver.MiboDriver(camera.ip_address, camera.username, camera.password)
+    success = driver.toggle_microphone(enable)
+    
+    if not success:
+        return {"message": "Aviso: Hardware bloqueia controlo de áudio externo", "success": False}
+        
+    return {"message": f"Áudio {'ligado' if enable else 'desligado'}", "success": True}
+
+@app.get("/cameras/{camera_id}/system-logs")
+def get_device_logs(camera_id: int, db: Session = Depends(get_db)):
+    camera = crud.get_camera(db, camera_id=camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Câmara não encontrada")
+        
+    if camera.camera_type not in ["mibo", "intelbras"]:
+        raise HTTPException(status_code=400, detail="Este adaptador não suporta extração de logs do hardware")
+    
+    # Prepara as datas (últimas 24 horas)
+    end_time = datetime.now()
+    start_time = end_time - timedelta(days=1)
+    start_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
+    end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    logs = []
+    
+    # Direciona para o adaptador correto
+    if camera.camera_type == "mibo":
+        driver = mibo_driver.MiboDriver(camera.ip_address, camera.username, camera.password)
+        logs = driver.get_system_logs(start_str, end_str)
+        
+    elif camera.camera_type == "intelbras":
+        adapter = intelbras_adapter.IntelbrasAdapter(camera.ip_address, camera.username, camera.password)
+        logs = adapter.get_system_logs(start_str, end_str)
+        
+    return {"logs": logs}
+
+@app.post("/cameras/{camera_id}/ptz")
+def control_ptz(camera_id: int, payload: dict, db: Session = Depends(get_db)):
+    # 1. Conexão "Flutuante": Vai buscar os dados da câmara à Base de Dados
+    camera = crud.get_camera(db, camera_id=camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Câmara não encontrada")
+    
+    # 2. Bloqueio de segurança (só executa em câmaras compatíveis)
+    if camera.camera_type not in ["mibo", "intelbras"]:
+        raise HTTPException(status_code=400, detail="Esta câmara não suporta PTZ")
+
+    # 3. Extrai os comandos enviados pelo Angular
+    direction = payload.get('direction') # Ex: "Left"
+    action = payload.get('action')       # Ex: "start"
+
+    # 4. Injeta as credenciais dinâmicas no Driver
+    # (A password lida do DB será o Código de Segurança da etiqueta da Mibo)
+    driver = mibo_driver.MiboDriver(
+        ip=camera.ip_address, 
+        username=camera.username, 
+        password=camera.password
+    )
+    
+    # 5. Executa o movimento
+    success = driver.move_ptz(direction=direction, action=action)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Falha ao comunicar com os motores da câmara")
+        
+    return {"message": f"PTZ {direction} {action} executado com sucesso."}
 
 # --- ROTAS DE EVENTOS (Correção Importante) ---
 

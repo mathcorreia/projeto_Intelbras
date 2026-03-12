@@ -1,45 +1,65 @@
 <div class="form-container">
   <header class="form-header">
-    <a routerLink="/dashboard" class="back-button">
+   <a routerLink="/dashboard" class="btn-back-modern" title="Voltar">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       <span>Voltar</span>
     </a>
     
     <h1>{{ isEditMode ? 'Editar Câmara' : 'Adicionar Nova Câmara' }}</h1>
   </header>
+  
 
   <form (ngSubmit)="onSubmit()" #cameraForm="ngForm" class="camera-form">
-    <div class="form-group">
-      <label for="name">Nome da Câmara</label>
-      <input type="text" id="name" name="name" [(ngModel)]="cameraModel.name" required>
+    
+    <div class="form-group full-width">
+      <label>1. Selecione o Tipo de Dispositivo</label>
+      <div class="adapter-grid">
+        <div *ngFor="let adapter of adapters" 
+             class="adapter-card" 
+             [class.selected]="cameraModel.camera_type === adapter.id"
+             (click)="onAdapterChange(adapter.id)">
+          <div class="icon">{{ adapter.icon }}</div>
+          <div class="info">
+            <h4>{{ adapter.name }}</h4>
+            <p>{{ adapter.desc }}</p>
+          </div>
+          <div class="check-icon" *ngIf="cameraModel.camera_type === adapter.id">✓</div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="ip_address">Endereço IP</label>
-      <input type="text" id="ip_address" name="ip_address" [(ngModel)]="cameraModel.ip_address" required>
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label for="name">Nome da Câmara</label>
+        <input type="text" id="name" name="name" [(ngModel)]="cameraModel.name" placeholder="Ex: Portão Principal" required>
+      </div>
+
+      <div class="form-group flex-1">
+        <label for="ip_address">Endereço IP</label>
+        <input type="text" id="ip_address" name="ip_address" [(ngModel)]="cameraModel.ip_address" placeholder="192.168.1.x" required>
+      </div>
+    </div>
+    
+
+    <div class="mibo-warning" *ngIf="cameraModel.camera_type === 'mibo'">
+      <p>⚠️ Para a linha Mibo, o utilizador é sempre <strong>admin</strong>. A senha é o <strong>Código de Segurança (8 letras)</strong> localizado na etiqueta embaixo da câmara.</p>
     </div>
 
-    <div class="form-group">
-      <label for="username">Utilizador</label>
-      <input type="text" id="username" name="username" [(ngModel)]="cameraModel.username" required>
-    </div>
+    <div class="form-row" *ngIf="cameraModel.camera_type !== 'bronze'">
+      <div class="form-group flex-1">
+        <label for="username">Utilizador</label>
+        <input type="text" id="username" name="username" [(ngModel)]="cameraModel.username" 
+               [disabled]="cameraModel.camera_type === 'mibo'" required>
+      </div>
 
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" [(ngModel)]="cameraModel.password" required>
-    </div>
-
-    <div class="form-group">
-      <label for="camera_type">Tipo de Câmara</label>
-      <select id="camera_type" name="camera_type" [(ngModel)]="cameraModel.camera_type">
-        <option value="onvif">ONVIF</option>
-        <option value="intelbras">Intelbras</option>
-        <option value="bronze">Bronze (Apenas Ping)</option>
-      </select>
+      <div class="form-group flex-1">
+        <label for="password">{{ cameraModel.camera_type === 'mibo' ? 'Código de Acesso (Etiqueta)' : 'Password' }}</label>
+        <input type="password" id="password" name="password" [(ngModel)]="cameraModel.password" placeholder="***" required>
+      </div>
     </div>
 
     <button type="submit" class="submit-button" [disabled]="!cameraForm.form.valid">
-      {{ isEditMode ? 'Salvar' : 'Adicionar Câmara' }}
+      {{ isEditMode ? 'Guardar Alterações' : 'Adicionar Dispositivo' }}
     </button>
   </form>
 </div>

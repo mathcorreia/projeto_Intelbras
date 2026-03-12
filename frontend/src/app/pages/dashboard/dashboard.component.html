@@ -3,25 +3,25 @@
   <header class="dashboard-header" *ngIf="!isFullscreen">
     
     <div class="header-brand">
-        
-        <a routerLink="/" class="btn-back-home" title="Voltar ao Hub">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-            <span>Voltar</span>
-        </a>
+      <a routerLink="/" class="btn-back-modern" title="Voltar ao Início">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>Voltar</span>
+      </a>
 
-        <div class="logo-area" (click)="resetView()" title="Resetar Visualização">
-            <div class="system-status-light"></div>
-            <h1>VMS <span class="thin">Ultra</span></h1>
-        </div>
+      <div class="logo-area" (click)="resetView()" title="Resetar Visualização">
+    <img src="letra.png" alt="Koreon Logo" style="width: 45px; height: 45px; object-fit: contain;">
+    <h1>KOREON <span class="thin">VMS</span></h1>
+    <div class="system-status-light"></div>
+</div>
 
-        <div class="divider"></div>
+      <div class="divider"></div>
 
-        <div class="system-info">
-            <span class="status-text">Online</span>
-            <span class="meta-text">{{ cameras.length }} Canais</span>
-        </div>
-    </div> 
-    <div class="header-actions">
+      <div class="system-info">
+          <span class="status-text">Online</span>
+          <span class="meta-text">{{ cameras.length }} Canais</span>
+      </div>
+    </div> <div class="header-actions">
+     
       <div class="search-wrapper">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <input type="text" placeholder="Buscar..." [ngModel]="searchTerm" (ngModelChange)="onSearch($event)">
@@ -46,6 +46,7 @@
           {{ size }}
         </button>
       </div>
+      
       <div class="separator"></div>
       <button class="btn-exit" (click)="toggleFullscreen()">SAIR (ESC)</button>
     </div>
@@ -64,6 +65,31 @@
         <img [src]="apiService.getVideoFeedUrl(slot.data.id)" class="video-stream" alt="Live">
 
         <div class="card-controls" (click)="$event.stopPropagation()">
+          <div class="ptz-overlay" *ngIf="slot.data.camera_type === 'mibo' || slot.data.camera_type === 'intelbras'" (click)="$event.stopPropagation()">
+            <button class="ptz-btn up" 
+                    (mousedown)="onPtzAction(slot.data.id, 'Up', 'start', $event)"
+                    (mouseup)="onPtzAction(slot.data.id, 'Up', 'stop', $event)"
+                    (mouseleave)="onPtzAction(slot.data.id, 'Up', 'stop', $event)">▲</button>
+            
+            <div class="ptz-middle">
+                <button class="ptz-btn left" 
+                        (mousedown)="onPtzAction(slot.data.id, 'Left', 'start', $event)"
+                        (mouseup)="onPtzAction(slot.data.id, 'Left', 'stop', $event)"
+                        (mouseleave)="onPtzAction(slot.data.id, 'Left', 'stop', $event)">◀</button>
+                
+                <div class="ptz-center-dot"></div>
+                
+                <button class="ptz-btn right" 
+                        (mousedown)="onPtzAction(slot.data.id, 'Right', 'start', $event)"
+                        (mouseup)="onPtzAction(slot.data.id, 'Right', 'stop', $event)"
+                        (mouseleave)="onPtzAction(slot.data.id, 'Right', 'stop', $event)">▶</button>
+            </div>
+            
+            <button class="ptz-btn down" 
+                    (mousedown)="onPtzAction(slot.data.id, 'Down', 'start', $event)"
+                    (mouseup)="onPtzAction(slot.data.id, 'Down', 'stop', $event)"
+                    (mouseleave)="onPtzAction(slot.data.id, 'Down', 'stop', $event)">▼</button>
+        </div>
             <button class="icon-btn delete" (click)="deleteCamera(slot.data.id, $event)">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path></svg>
             </button>
@@ -98,16 +124,15 @@
 
   <footer class="vms-footer" *ngIf="!isFullscreen">
     <div class="footer-left">
-      <span class="version">{{ systemVersion }}</span>
-      <span class="copyright">© 2024 Security Corp</span>
-    </div>
+    <img src="letra.png" alt="Koreon Tech" style="width: 28px; height: 28px; margin-right: 10px; vertical-align: middle;">
+    <span class="version">v3.5 Enterprise</span>
+    <span class="copyright">© 2026 Koreon Tech</span>
+</div>
 
     <div class="footer-center">
-        <a href="#">Logs do Sistema</a>
+        <a href="https://www.koreontech.com.br/#/suporte" target="_blank">Suporte Técnico</a>
         <span class="dot">·</span>
-        <a href="#">Configurações de Rede</a>
-        <span class="dot">·</span>
-        <a href="#">Suporte Técnico</a>
+        <a href="https://www.koreontech.com.br/#/privacidade" target="_blank">Privacidade</a>
     </div>
 
     <div class="footer-right">
@@ -115,12 +140,6 @@
         <span class="label">LATÊNCIA</span>
         <span class="value latency">{{ serverLatency }}</span>
       </div>
-      <div class="divider"></div>
-      <div class="status-item">
-        <span class="label">SERVIDOR</span>
-        <span class="value time">{{ systemTime | date:'HH:mm:ss' }}</span>
-      </div>
     </div>
   </footer>
-
 </div>

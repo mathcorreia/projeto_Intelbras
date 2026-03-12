@@ -5,6 +5,9 @@ import { CameraAddComponent } from './pages/camera-add/camera-add.component';
 import { LogsComponent } from './pages/logs/logs.component';
 import { SecurityHubComponent } from './pages/hub-modules/security-hub.component';
 import { HomeHubComponent } from './pages/home-hub/home-hub.component';
+import { AccessManagementComponent } from './pages/access-management/access-management.component';
+import { GateManagementComponent } from './pages/gate-management/gate-management.component'; 
+import { AlarmManagementComponent } from './pages/alarm-management/alarm-management.component';
 
 export const routes: Routes = [
     // 1. A Raiz (Home) abre o Hub Principal
@@ -25,9 +28,9 @@ export const routes: Routes = [
      
     { path: 'logs', component: LogsComponent },
 
-    // --- REMOVI O REDIRECT ANTIGO QUE CAUSAVA CONFLITO ---
-    // { path: '', redirectTo: '/dashboard', pathMatch: 'full' }, <--- ISTO SAI
+    { path: 'gestao-acessos', component: AccessManagementComponent },
+    { path: 'gestao-portoes', component: GateManagementComponent },
+    { path: 'gestao-alarmes', component: AlarmManagementComponent },
 
-    // 4. Wildcard: Se a rota não existir, volta para a Home (Raiz)
     { path: '**', redirectTo: '' },
 ];

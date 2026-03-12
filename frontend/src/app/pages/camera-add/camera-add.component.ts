@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // Adicionei ActivatedRoute
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms'; 
 import { ApiService } from '../../api.service';
 
@@ -12,42 +12,60 @@ import { ApiService } from '../../api.service';
   styleUrls: ['./camera-add.component.scss']
 })
 export class CameraAddComponent implements OnInit {
-  // Objeto para guardar os dados do formulário
+  
+  // Objeto mantido exatamente como o teu
   cameraModel: any = {
     name: '',
     ip_address: '',
     username: 'admin',
     password: '',
-    camera_type: 'intelbras' // Sugiro mudar o padrão para intelbras, já que usas mais
+    camera_type: 'onvif' // Alterado o padrão inicial
   };
 
-  isEditMode = false;           // Variável para saber se estamos a editar
-  cameraId: number | null = null; // Guarda o ID da câmara se for edição
+  isEditMode = false;           
+  cameraId: number | null = null; 
+
+  // --- NOVA LISTA DE ADAPTADORES ---
+  adapters = [
+    { id: 'onvif', name: 'ONVIF Padrão', icon: '🌐', desc: 'Descoberta automática' },
+    { id: 'intelbras', name: 'Intelbras Pro', icon: '🏢', desc: 'Série 3000, 5000, etc.' },
+    { id: 'mibo', name: 'Intelbras Mibo', icon: '📷', desc: 'Linha iM3, iM4, iM5...' },
+    { id: 'bronze', name: 'Bronze (Ping)', icon: '📡', desc: 'Apenas status de rede' }
+  ];
 
   constructor(
     private apiService: ApiService, 
     private router: Router,
-    private route: ActivatedRoute // Injeção necessária para ler a URL
+    private route: ActivatedRoute 
   ) {}
 
   ngOnInit() {
-    // Verifica se existe um ID na URL (ex: /camera-edit/1)
     const id = this.route.snapshot.paramMap.get('id');
     
     if (id) {
-      // Se tem ID, estamos no modo de EDIÇÃO
       this.isEditMode = true;
-      this.cameraId = +id; // O '+' converte string para número
+      this.cameraId = +id; 
       this.loadCameraData(this.cameraId);
     }
   }
 
-  // Busca os dados da câmara antiga para preencher o formulário
+  // --- NOVA LÓGICA DE SELEÇÃO DE ADAPTADOR ---
+  onAdapterChange(adapterId: string) {
+    this.cameraModel.camera_type = adapterId;
+    
+    // Regra de negócio da MIBO
+    if (adapterId === 'mibo') {
+      this.cameraModel.username = 'admin'; // Força o admin
+    } else if (adapterId === 'bronze') {
+      this.cameraModel.username = '';
+      this.cameraModel.password = '';
+    }
+  }
+
   loadCameraData(id: number) {
     this.apiService.getCamera(id).subscribe({
       next: (data) => {
         this.cameraModel = data;
-        // O campo password pode vir vazio por segurança, o utilizador preenche se quiser mudar
       },
       error: (err) => {
         alert('Erro ao carregar dados da câmara.');
@@ -56,10 +74,8 @@ export class CameraAddComponent implements OnInit {
     });
   }
 
-  // Função chamada quando o formulário é submetido
   onSubmit() {
     if (this.isEditMode && this.cameraId) {
-      // --- LÓGICA DE ATUALIZAÇÃO (PUT) ---
       console.log('A atualizar câmara:', this.cameraModel);
       this.apiService.updateCamera(this.cameraId, this.cameraModel).subscribe({
         next: () => {
@@ -71,11 +87,9 @@ export class CameraAddComponent implements OnInit {
           alert('Erro ao atualizar a câmara.');
         }
       });
-
     } else {
-      // --- LÓGICA DE CRIAÇÃO (POST) ---
       console.log('A criar nova câmara:', this.cameraModel);
-      this.apiService.createCamera(this.cameraModel).subscribe({ // Confirma se no serviço é createCamera ou addCamera
+      this.apiService.createCamera(this.cameraModel).subscribe({ 
         next: (response) => {
           console.log('Câmara criada com sucesso!', response);
           alert('Câmara adicionada com sucesso!');
