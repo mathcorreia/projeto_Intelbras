@@ -5,10 +5,11 @@
     --card-border: #222222;
     --text-primary: #ffffff;
     --text-secondary: #888888;
-    
-    --accent-vms: #2d7fff;    /* Azul Koreon */
-    --accent-access: #34c759; /* Verde */
-    --accent-logs: #ff9f0a;   /* Laranja */
+
+    --accent-vms: #2d7fff;      /* Azul Koreon */
+    --accent-access: #34c759;   /* Verde */
+    --accent-logs: #ff9f0a;     /* Laranja */
+    --accent-guarita: #a855f7;  /* Roxo */
 }
 
 /* --- CONTAINER GERAL (CORRIGE O FOOTER) --- */
@@ -88,9 +89,10 @@
     .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
 
     &:hover { transform: translateY(-8px); background: #161616; .icon-wrapper { transform: scale(1.1); } }
-    &.vms:hover { border-color: var(--accent-vms); box-shadow: 0 20px 50px rgba(45, 127, 255, 0.15); }
-    &.access:hover { border-color: var(--accent-access); box-shadow: 0 20px 50px rgba(52, 199, 89, 0.15); }
-    &.logs:hover { border-color: var(--accent-logs); box-shadow: 0 20px 50px rgba(255, 159, 10, 0.15); }
+    &.vms:hover     { border-color: var(--accent-vms);     box-shadow: 0 20px 50px rgba(45, 127, 255, 0.15); }
+    &.access:hover  { border-color: var(--accent-access);  box-shadow: 0 20px 50px rgba(52, 199, 89, 0.15); }
+    &.logs:hover    { border-color: var(--accent-logs);    box-shadow: 0 20px 50px rgba(255, 159, 10, 0.15); }
+    &.guarita:hover { border-color: var(--accent-guarita); box-shadow: 0 20px 50px rgba(168, 85, 247, 0.15); }
 
     .icon-wrapper { width: 70px; height: 70px; background: rgba(255,255,255,0.05); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; transition: transform 0.3s; svg { stroke: #e5e5e5; } }
     .text-group { flex-grow: 1; }
@@ -101,9 +103,10 @@
         margin-top: auto; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08);
         display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; color: #cccccc;
         .dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
-        .dot.blue { background: var(--accent-vms); color: var(--accent-vms); }
-        .dot.green { background: var(--accent-access); color: var(--accent-access); }
-        .dot.orange { background: var(--accent-logs); color: var(--accent-logs); }
+        .dot.blue   { background: var(--accent-vms);     color: var(--accent-vms); }
+        .dot.green  { background: var(--accent-access);  color: var(--accent-access); }
+        .dot.orange { background: var(--accent-logs);    color: var(--accent-logs); }
+        .dot.purple { background: var(--accent-guarita); color: var(--accent-guarita); }
     }
 }
 

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../api.service';
 
 @Component({
   selector: 'app-alarm-management',
@@ -10,47 +11,107 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './alarm-management.component.html',
   styleUrl: './alarm-management.component.scss'
 })
-export class AlarmManagementComponent implements OnInit {
+export class AlarmManagementComponent implements OnInit, OnDestroy {
 
   currentView: 'live' | 'database' = 'live';
   showAlarmForm = false;
   isEditMode = false;
+  loading = false;
+  error = '';
 
-  newAlarm = { id: null, name: '', model: 'Intelbras AMT 8000', ip: '', mac: '', port: '9009', password: '', zonesCount: 16 };
+  alarms: any[] = [];
+  zones: any[] = [];
+  liveLogs: any[] = [];
+  selectedCentralId: number | null = null;
 
-  // Centrais Simuladas
-  alarms = [
-    { id: 1, name: 'Central Matriz', status: 'ARMED', ip: '192.168.1.150', zonesOnline: 16 },
-    { id: 2, name: 'Central Galpão', status: 'DISARMED', ip: '192.168.1.151', zonesOnline: 8 }
-  ];
+  newAlarm: any = { name: '', model: '', ip: '', port: 9009, password: '' };
 
-  // Zonas (Sensores) Simuladas para a Vista Live
-  zones = [
-    { id: 1, name: 'Recepção (Infra)', status: 'NORMAL', bypassed: false },
-    { id: 2, name: 'Porta Entrada (Magnético)', status: 'OPEN', bypassed: false },
-    { id: 3, name: 'Cofre (Vibração)', status: 'NORMAL', bypassed: true }
-  ];
+  private pollInterval: any;
 
-  // Feed de Eventos
-  liveLogs = [
-    { id: 1, time: '15:10:22', type: 'alert', action: 'Disparo de Alarme!', zone: 'Porta Entrada', device: 'Central Matriz' },
-    { id: 2, time: '15:05:00', type: 'arm', action: 'Sistema Armado', zone: 'Todas as Zonas', device: 'Central Matriz' },
-    { id: 3, time: '08:30:15', type: 'disarm', action: 'Sistema Desarmado (Usuário: 01)', zone: '-', device: 'Central Galpão' }
-  ];
+  constructor(private api: ApiService) {}
 
-  constructor() {}
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.load();
+    this.pollInterval = setInterval(() => this.loadEvents(), 10000);
+  }
 
-  switchView(view: 'live' | 'database') { this.currentView = view; }
+  ngOnDestroy(): void {
+    clearInterval(this.pollInterval);
+  }
 
-  // Ações de Alarme
-  armSystem(id: number) { alert('A enviar comando de ARME para a central...'); }
-  disarmSystem(id: number) { alert('A enviar comando de DESARME...'); }
-  bypassZone(zone: any) { alert(`A isolar zona: ${zone.name}`); zone.bypassed = !zone.bypassed; }
+  load(): void {
+    this.loading = true;
+    this.api.getAlarmCentrals().subscribe({
+      next: centrals => {
+        this.alarms = centrals;
+        if (centrals.length > 0) this.selectCentral(centrals[0].id);
+        this.loading = false;
+      },
+      error: () => { this.error = 'Erro ao carregar centrais'; this.loading = false; }
+    });
+    this.loadEvents();
+  }
 
-  // Formulários
-  openAlarmForm() { this.isEditMode = false; this.showAlarmForm = true; }
-  editAlarm(alarm: any) { this.isEditMode = true; this.showAlarmForm = true; }
-  closeAlarmForm() { this.showAlarmForm = false; }
-  saveAlarm() { alert('Central guardada com sucesso!'); this.closeAlarmForm(); }
+  selectCentral(id: number): void {
+    this.selectedCentralId = id;
+    this.api.getZones(id).subscribe({ next: z => this.zones = z });
+  }
+
+  loadEvents(): void {
+    const centralId = this.selectedCentralId ?? undefined;
+    this.api.getAlarmEvents(centralId, 50).subscribe({ next: ev => this.liveLogs = ev });
+  }
+
+  switchView(view: 'live' | 'database'): void { this.currentView = view; }
+
+  armSystem(alarm: any): void {
+    this.api.armCentral(alarm.id).subscribe({
+      next: (r: any) => alert(r.message || 'Arme enviado'),
+      error: () => alert('Falha ao armar')
+    });
+  }
+
+  disarmSystem(alarm: any): void {
+    this.api.disarmCentral(alarm.id).subscribe({
+      next: (r: any) => alert(r.message || 'Desarme enviado'),
+      error: () => alert('Falha ao desarmar')
+    });
+  }
+
+  bypassZone(zone: any): void {
+    this.api.toggleBypass(zone.id).subscribe({
+      next: (r: any) => zone.is_bypassed = r.is_bypassed,
+      error: () => alert('Falha ao isolar zona')
+    });
+  }
+
+  openAlarmForm(): void {
+    this.isEditMode = false;
+    this.newAlarm = { name: '', model: '', ip: '', port: 9009, password: '' };
+    this.showAlarmForm = true;
+  }
+
+  editAlarm(alarm: any): void {
+    this.isEditMode = true;
+    this.newAlarm = { ...alarm };
+    this.showAlarmForm = true;
+  }
+
+  closeAlarmForm(): void { this.showAlarmForm = false; }
+
+  saveAlarm(): void {
+    const obs = this.isEditMode
+      ? this.api.updateAlarmCentral(this.newAlarm.id, this.newAlarm)
+      : this.api.createAlarmCentral(this.newAlarm);
+
+    obs.subscribe({
+      next: () => { this.closeAlarmForm(); this.load(); },
+      error: () => alert('Erro ao salvar central')
+    });
+  }
+
+  deleteAlarm(alarm: any): void {
+    if (!confirm(`Remover ${alarm.name}?`)) return;
+    this.api.deleteAlarmCentral(alarm.id).subscribe({ next: () => this.load() });
+  }
 }

@@ -2,8 +2,18 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 onvif-zeep
-opencv-python 
-onvif-zeep
+opencv-python
 zeep
 psycopg2-binary
 requests
+numpy
+
+# AI pipeline — Fase 3
+ultralytics          # YOLOv8 — contagem de pessoas
+insightface          # reconhecimento facial (embeddings ArcFace)
+onnxruntime          # backend de inferência para InsightFace
+deepface             # detecção de emoção
+
+# Auth / Multitenancy — Fase 7
+PyJWT                # validação de JWT emitido pelo Java backendPerm
+httpx                # cliente HTTP async para notificar o broker WebSocket Java

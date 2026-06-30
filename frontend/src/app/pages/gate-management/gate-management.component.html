@@ -28,7 +28,7 @@
     <div class="gates-live-container" *ngIf="currentView === 'live'">
       
       <div class="gates-control-grid">
-        <div class="gate-card" *ngFor="let gate of gates" [ngClass]="gate.status.toLowerCase()">
+        <div class="gate-card" *ngFor="let gate of gates" [ngClass]="gate.status?.toLowerCase() ?? 'unknown'">
           
           <div class="gate-header">
             <span class="gate-brand">{{ gate.brand }}</span>

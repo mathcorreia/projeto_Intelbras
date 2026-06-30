@@ -9,8 +9,12 @@ from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from adapters.mibo_driver import MiboDriver
+from adapters.alarm.tcp_receiver import AlarmTCPReceiver
 from database import models, core
 from adapters import bronze_adapter, onvif_adapter, intelbras_adapter, mibo_driver
+from routes import persons, visitors, alarms, access, gates, guarita
+from auth.jwt_middleware import get_current_tenant_id
+import ai.pipeline as ai_pipeline
 import crud
 import schemas
 import os
@@ -18,16 +22,52 @@ import os
 # Cria tabelas na BD
 models.Base.metadata.create_all(bind=core.engine)
 
-app = FastAPI()
+app = FastAPI(title="Koreon Tech Monitoring API", version="1.0.0")
+
+os.makedirs("face_images", exist_ok=True)
 app.mount("/faces", StaticFiles(directory="face_images"), name="faces")
 
+_CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:4200").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health", tags=["health"])
+def health():
+    return {"status": "ok", "service": "koreon-backend", "version": "1.0.0"}
+
+
+# --- Routers por domínio ---
+app.include_router(persons.router)
+app.include_router(visitors.router)
+app.include_router(alarms.router)
+app.include_router(access.router)
+app.include_router(gates.router)
+app.include_router(guarita.router)
+
+# --- Servidor TCP de alarmes (Contact ID) ---
+ALARM_TCP_PORT = int(os.getenv("ALARM_TCP_PORT", "9009"))
+_alarm_receiver = AlarmTCPReceiver(host="0.0.0.0", port=ALARM_TCP_PORT)
+_alarm_thread = threading.Thread(target=_alarm_receiver.start, daemon=True, name="alarm-tcp")
+_alarm_thread.start()
+
+# --- Sync do pipeline de IA (inicia/para threads conforme câmeras cadastradas) ---
+def _ai_sync_loop(db_factory):
+    while True:
+        try:
+            db = db_factory()
+            cameras = crud.get_cameras(db)
+            db.close()
+            ai_pipeline.sync_cameras(cameras, db_factory)
+        except Exception as e:
+            print(f"[AI sync] error: {e}")
+        time.sleep(30)
+
+threading.Thread(target=_ai_sync_loop, args=(core.SessionLocal,), daemon=True, name="ai-sync").start()
 
 ADAPTER_MAP = {
     "bronze": bronze_adapter.BronzeCameraAdapter,
@@ -46,8 +86,12 @@ def get_db():
 # --- ROTAS DE CÂMARAS ---
 
 @app.post("/cameras/", response_model=schemas.Camera)
-def create_camera(camera: schemas.CameraCreate, db: Session = Depends(get_db)):
-    return crud.create_camera(db=db, camera=camera)
+def create_camera(
+    camera: schemas.CameraCreate,
+    db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
+):
+    return crud.create_camera(db=db, camera=camera, tenant_id=tenant_id)
 
 @app.delete("/cameras/{camera_id}")
 def remove_camera(camera_id: int, db: Session = Depends(get_db)):
@@ -55,6 +99,7 @@ def remove_camera(camera_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Camera not found")
     return {"message": "Camera deleted successfully"}
+
 @app.put("/cameras/{camera_id}", response_model=schemas.Camera)
 def update_camera_endpoint(camera_id: int, camera: schemas.CameraCreate, db: Session = Depends(get_db)):
     db_camera = crud.update_camera(db, camera_id=camera_id, camera_data=camera)
@@ -63,8 +108,11 @@ def update_camera_endpoint(camera_id: int, camera: schemas.CameraCreate, db: Ses
     return db_camera
 
 @app.get("/cameras/", response_model=list[schemas.Camera])
-def read_cameras(db: Session = Depends(get_db)):
-    return crud.get_cameras(db)
+def read_cameras(
+    db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
+):
+    return crud.get_cameras(db, tenant_id=tenant_id)
 
 @app.get("/cameras/{camera_id}", response_model=schemas.Camera)
 def read_camera(camera_id: int, db: Session = Depends(get_db)):
@@ -267,10 +315,13 @@ def poll_camera_events(db_session_factory):
                     adapter_instance = Adapter(cam.ip_address, cam.username, cam.password)
                     
                     events = adapter_instance.get_events()
-                    
+
                     for event_data in events:
                         event = schemas.EventCreate(**event_data)
                         crud.create_event(db, event=event, camera_id=cam.id)
+                        # Supprime IA local para câmeras que entregam eventos nativos de IA
+                        if event_data.get("event_type") in ("face_recognized", "face_detection", "people_count"):
+                            ai_pipeline.notify_native_ai_event(cam.id)
                 except Exception as e:
                     print(f"Erro ao ler eventos da câmara {cam.ip_address}: {e}")
             db.close()

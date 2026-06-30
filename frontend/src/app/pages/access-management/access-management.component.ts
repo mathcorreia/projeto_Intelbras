@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../api.service';
 
 @Component({
   selector: 'app-access-management',
@@ -10,72 +11,98 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './access-management.component.html',
   styleUrl: './access-management.component.scss'
 })
-export class AccessManagementComponent implements OnInit {
+export class AccessManagementComponent implements OnInit, OnDestroy {
 
-  // Alternador de Ecrã Principal
   currentView: 'live' | 'users' = 'live';
-
-  // Controlos de Modais
   selectedLog: any = null;
   showUserForm = false;
   showDeviceForm = false;
-  isEditMode = false; // Define se estamos a criar ou a editar
+  isEditMode = false;
+  loading = false;
 
-  // Formulário de Utilizador (Estrutura base)
-  defaultUser = { id: null, name: '', department: '', cpf: '', accessType: 'Reconhecimento Facial', rfidCode: '', permissionLevel: 'Acesso Total (24h)', validity: '' };
+  liveLogs: any[] = [];
+  registeredUsers: any[] = [];
+  devices: any[] = [];
+
+  defaultUser = { name: '', cpf: '', department: '', access_level: 'standard', is_active: true };
   newUser: any = { ...this.defaultUser };
-  
-  newDevice = { name: '', type: 'Control iD (Catraca)', location: '', ip: '', port: '80', username: 'admin', password: '' };
 
-  // Feed Simulado (Eventos)
-  liveLogs = [
-    { id: 1, time: '14:32:05', type: 'in', action: 'Entrada Autorizada', name: 'Matheus Correia', device: 'Catraca Principal', photo: 'https://i.pravatar.cc/600?img=11', method: 'Reconhecimento Facial', confidence: '98.5%', cpf: '123.456.789-00' },
-    { id: 2, time: '14:30:12', type: 'block', action: 'Acesso Negado', name: 'Desconhecido', device: 'Porta Servidores', photo: null, method: 'Tentativa Não Cadastrada', confidence: 'N/A', cpf: 'N/A' },
-    { id: 3, time: '14:15:40', type: 'out', action: 'Saída Autorizada', name: 'Carlos Almeida', device: 'Catraca Principal', photo: 'https://i.pravatar.cc/600?img=33', method: 'Tag RFID', confidence: '100%', cpf: '987.654.321-11' }
-  ];
+  defaultDevice = { name: '', device_type: 'catraca', ip: '', port: 80, location: '', username: '', password: '' };
+  newDevice: any = { ...this.defaultDevice };
 
-  // Banco de Dados Simulado (Utilizadores Cadastrados)
-  registeredUsers = [
-    { id: 101, name: 'Matheus Correia', department: 'Diretoria', cpf: '123.456.789-00', accessType: 'Reconhecimento Facial', permissionLevel: 'Acesso Total (24h)', validity: '-', photo: 'https://i.pravatar.cc/150?img=11' },
-    { id: 102, name: 'Carlos Almeida', department: 'Suporte', cpf: '987.654.321-11', accessType: 'Cartão RFID', permissionLevel: 'Horário Comercial', validity: '-', photo: 'https://i.pravatar.cc/150?img=33' },
-    { id: 103, name: 'Ana Oliveira', department: 'Manutenção (Terceirizada)', cpf: '444.555.666-77', accessType: 'Reconhecimento Facial', permissionLevel: 'Visitante (Temporário)', validity: '25/02/2026', photo: 'https://i.pravatar.cc/150?img=47' }
-  ];
+  private pollInterval: any;
 
-  constructor() {}
-  ngOnInit(): void {}
+  constructor(private api: ApiService) {}
 
-  // Alternar entre Live Feed e Banco de Utilizadores
-  switchView(view: 'live' | 'users') {
-    this.currentView = view;
+  ngOnInit(): void {
+    this.load();
+    this.pollInterval = setInterval(() => this.loadLogs(), 8000);
   }
 
-  // Novo Utilizador
-  openUserForm() { 
+  ngOnDestroy(): void { clearInterval(this.pollInterval); }
+
+  load(): void {
+    this.loadLogs();
+    this.api.getPersons().subscribe({ next: p => this.registeredUsers = p });
+    this.api.getAccessDevices().subscribe({ next: d => this.devices = d });
+  }
+
+  loadLogs(): void {
+    this.api.getAccessLogs(undefined, undefined, 50).subscribe({ next: l => this.liveLogs = l });
+  }
+
+  switchView(view: 'live' | 'users'): void { this.currentView = view; }
+
+  openLogDetails(log: any): void { this.selectedLog = log; }
+  closeLogDetails(): void { this.selectedLog = null; }
+
+  openUserForm(): void {
     this.isEditMode = false;
-    this.newUser = { ...this.defaultUser }; // Limpa o form
-    this.showUserForm = true; 
-  }
-
-  // Editar Utilizador (Preenche o Modal com os dados existentes)
-  editUser(user: any) {
-    this.isEditMode = true;
-    this.newUser = { ...user }; // Copia os dados do utilizador clicado para o formulário
+    this.newUser = { ...this.defaultUser };
     this.showUserForm = true;
   }
 
-  closeUserForm() { this.showUserForm = false; }
-  
-  saveUser() { 
-    if(this.isEditMode) alert(`Dados de ${this.newUser.name} atualizados com sucesso!`);
-    else alert('Novo usuário cadastrado com sucesso!');
-    this.closeUserForm(); 
+  editUser(user: any): void {
+    this.isEditMode = true;
+    this.newUser = { ...user };
+    this.showUserForm = true;
   }
 
-  // Dispositivos e Logs
-  openDeviceForm() { this.showDeviceForm = true; }
-  closeDeviceForm() { this.showDeviceForm = false; }
-  saveDevice() { alert('Dispositivo adicionado!'); this.closeDeviceForm(); }
-  openLogDetails(log: any) { this.selectedLog = log; }
-  closeLogDetails() { this.selectedLog = null; }
-  quickOpen(door: string) { alert(`A abrir: ${door}`); }
+  closeUserForm(): void { this.showUserForm = false; }
+
+  saveUser(): void {
+    const obs = this.isEditMode
+      ? this.api.updatePerson(this.newUser.id, this.newUser)
+      : this.api.createPerson(this.newUser);
+    obs.subscribe({
+      next: () => { this.closeUserForm(); this.api.getPersons().subscribe(p => this.registeredUsers = p); },
+      error: (e: any) => alert(e?.error?.detail || 'Erro ao salvar pessoa')
+    });
+  }
+
+  deleteUser(user: any): void {
+    if (!confirm(`Desativar ${user.name}?`)) return;
+    this.api.deletePerson(user.id).subscribe({ next: () => this.api.getPersons().subscribe(p => this.registeredUsers = p) });
+  }
+
+  openDeviceForm(): void {
+    this.newDevice = { ...this.defaultDevice };
+    this.showDeviceForm = true;
+  }
+
+  closeDeviceForm(): void { this.showDeviceForm = false; }
+
+  saveDevice(): void {
+    this.api.createAccessDevice(this.newDevice).subscribe({
+      next: () => { this.closeDeviceForm(); this.api.getAccessDevices().subscribe(d => this.devices = d); },
+      error: () => alert('Erro ao salvar dispositivo')
+    });
+  }
+
+  quickOpen(device: any): void {
+    this.api.manualOpenDevice(device.id, 'Abertura rápida pelo operador').subscribe({
+      next: (r: any) => alert(r.gate_triggered ? `Portão aberto via ${device.name}` : 'Nenhum portão vinculado a este dispositivo'),
+      error: () => alert('Falha ao abrir')
+    });
+  }
 }

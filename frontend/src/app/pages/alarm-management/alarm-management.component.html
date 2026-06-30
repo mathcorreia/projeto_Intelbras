@@ -22,18 +22,21 @@
     <div class="alarms-live-container" *ngIf="currentView === 'live'">
       
       <div class="control-grid">
-        <div class="alarm-panel-card">
-          <div class="panel-header" [ngClass]="alarms[0].status.toLowerCase()">
+        <div *ngIf="alarms.length === 0" class="empty-state" style="padding:2rem;color:#666">
+          {{ loading ? 'Carregando centrais...' : 'Nenhuma central cadastrada. Adicione uma central na aba ⚙️.' }}
+        </div>
+        <div class="alarm-panel-card" *ngIf="alarms.length > 0">
+          <div class="panel-header" [ngClass]="alarms[0]?.status?.toLowerCase() ?? 'unknown'">
             <div class="info">
-              <h3>{{ alarms[0].name }}</h3>
-              <span class="status-badge">{{ alarms[0].status === 'ARMED' ? 'ARMADO' : 'DESARMADO' }}</span>
+              <h3>{{ alarms[0]?.name }}</h3>
+              <span class="status-badge">{{ alarms[0]?.status === 'ARMED' ? 'ARMADO' : 'DESARMADO' }}</span>
             </div>
             <div class="main-actions">
-              <button class="btn-arm" (click)="armSystem(1)">ARMAR</button>
-              <button class="btn-disarm" (click)="disarmSystem(1)">DESARMAR</button>
+              <button class="btn-arm" (click)="armSystem(alarms[0])">ARMAR</button>
+              <button class="btn-disarm" (click)="disarmSystem(alarms[0])">DESARMAR</button>
             </div>
           </div>
-          
+
           <div class="zones-list">
             <h4>Status das Zonas (Sensores)</h4>
             <div class="zone-item" *ngFor="let z of zones" [ngClass]="{'open': z.status === 'OPEN', 'bypassed': z.bypassed}">

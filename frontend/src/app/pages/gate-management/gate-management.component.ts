@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../api.service';
 
 @Component({
   selector: 'app-gate-management',
@@ -15,43 +16,74 @@ export class GateManagementComponent implements OnInit {
   currentView: 'live' | 'database' = 'live';
   showGateForm = false;
   isEditMode = false;
+  loading = false;
 
-  // Formulário para configurar o Módulo IoT do Portão
-  defaultGate = { id: null, name: '', brand: 'PPA Contatto Wi-Fi', ip: '', pulseTime: '1', sensorEnabled: true, location: '' };
+  gates: any[] = [];
+  liveLogs: any[] = [];
+
+  defaultGate = { name: '', brand: 'ppa', ip: '', port: 80, pulse_time: 1, location: '', username: '', password: '' };
   newGate: any = { ...this.defaultGate };
 
-  // Portões Reais Simulados
-  gates = [
-    { id: 1, name: 'Portão Principal (Entrada)', brand: 'PPA', status: 'CLOSED', lastAction: 'Fechou há 5 min', ip: '192.168.1.110' },
-    { id: 2, name: 'Portão Carga e Descarga', brand: 'Intelbras', status: 'OPEN', lastAction: 'Aberto por João Silva', ip: '192.168.1.111' },
-    { id: 3, name: 'Cancela Subsolo', brand: 'PPA', status: 'MOVING', lastAction: 'A Abrir...', ip: '192.168.1.112' }
-  ];
+  constructor(private api: ApiService) {}
 
-  // Feed de Logs de Garagem
-  liveLogs = [
-    { id: 1, time: '14:45:10', type: 'trigger', action: 'Acionamento Manual', user: 'Operador Admin', device: 'Portão Principal' },
-    { id: 2, time: '14:20:05', type: 'lpr', action: 'Abertura via LPR', user: 'Placa: ABC-1234', device: 'Cancela Subsolo' },
-    { id: 3, time: '13:10:00', type: 'alert', action: 'Alarme: Portão Aberto > 5min', user: 'Sistema', device: 'Portão Carga e Descarga' }
-  ];
+  ngOnInit(): void { this.load(); }
 
-  constructor() {}
-  ngOnInit(): void {}
-
-  switchView(view: 'live' | 'database') { this.currentView = view; }
-
-  // Gestão do Formulário
-  openGateForm() { this.isEditMode = false; this.newGate = { ...this.defaultGate }; this.showGateForm = true; }
-  editGate(gate: any) { this.isEditMode = true; this.newGate = { ...gate }; this.showGateForm = true; }
-  closeGateForm() { this.showGateForm = false; }
-  
-  saveGate() { 
-    alert(this.isEditMode ? 'Configurações do portão atualizadas!' : 'Novo Módulo IOT adicionado à rede!');
-    this.closeGateForm(); 
+  load(): void {
+    this.loading = true;
+    this.api.getGates().subscribe({
+      next: g => { this.gates = g; this.loading = false; },
+      error: () => this.loading = false
+    });
+    this.api.getAccessLogs(undefined, undefined, 30).subscribe({
+      next: logs => this.liveLogs = logs
+    });
   }
 
-  // Comando IoT Real
-  triggerGate(gate: any) {
-    alert(`A enviar pulso para ${gate.name} (${gate.ip})...`);
-    // Aqui entra o this.apiService.toggleGate(gate.id).subscribe(...)
+  switchView(view: 'live' | 'database'): void { this.currentView = view; }
+
+  triggerGate(gate: any): void {
+    this.api.triggerGate(gate.id).subscribe({
+      next: (r: any) => {
+        alert(r.message);
+        if (r.success) gate.status = 'moving';
+      },
+      error: () => alert('Falha ao acionar portão')
+    });
+  }
+
+  refreshStatus(gate: any): void {
+    this.api.getGateStatus(gate.id).subscribe({
+      next: (r: any) => gate.status = r.status
+    });
+  }
+
+  openGateForm(): void {
+    this.isEditMode = false;
+    this.newGate = { ...this.defaultGate };
+    this.showGateForm = true;
+  }
+
+  editGate(gate: any): void {
+    this.isEditMode = true;
+    this.newGate = { ...gate };
+    this.showGateForm = true;
+  }
+
+  closeGateForm(): void { this.showGateForm = false; }
+
+  saveGate(): void {
+    const obs = this.isEditMode
+      ? this.api.updateGate(this.newGate.id, this.newGate)
+      : this.api.createGate(this.newGate);
+
+    obs.subscribe({
+      next: () => { this.closeGateForm(); this.load(); },
+      error: () => alert('Erro ao salvar portão')
+    });
+  }
+
+  deleteGate(gate: any): void {
+    if (!confirm(`Remover ${gate.name}?`)) return;
+    this.api.deleteGate(gate.id).subscribe({ next: () => this.load() });
   }
 }

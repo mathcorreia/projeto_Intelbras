@@ -1,0 +1,49 @@
+<div class="login-page">
+  <div class="login-box">
+
+    <div class="brand">
+      <img src="letra.png" alt="Koreon Logo" class="brand-logo" />
+      <h1>KOREON <span class="thin">VMS</span></h1>
+      <p>Central de Segurança Unificada</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="login()">
+      <label>
+        E-mail
+        <input
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="admin@koreontech.com"
+          autocomplete="username"
+          required
+        />
+      </label>
+
+      <label>
+        Senha
+        <input
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        />
+      </label>
+
+      <div class="error-msg" *ngIf="error">{{ error }}</div>
+
+      <button type="submit" class="btn-login" [disabled]="loading">
+        <span *ngIf="!loading">Entrar</span>
+        <span *ngIf="loading">Autenticando...</span>
+      </button>
+    </form>
+
+    <p class="dev-hint">
+      Em modo dev (sem Java), acesse o sistema diretamente em
+      <a routerLink="/">Hub Principal</a>.
+    </p>
+
+  </div>
+</div>

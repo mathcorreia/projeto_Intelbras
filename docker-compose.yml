@@ -1,30 +1,86 @@
 services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   db:
-    image: postgres:14-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+    image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=dashboard_db
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: koreontech
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d koreontech"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
+  # ── Python FastAPI (câmeras, alarmes, AI, guarita) ───────────────────────────
   backend:
     build: ./backend
-    volumes:
-      - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
+      - "9009:9009"       # TCP receiver Contact ID (alarmes)
     environment:
-      - DATABASE_URL=postgresql://admin:admin@db/dashboard_db
+      # SQLAlchemy format
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin}@db/koreontech
+      ALARM_TCP_PORT: 9009
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+      # JWT_SECRET not set here intentionally: Python backend runs in dev mode (tenant_id=1, no auth required).
+      # Set JWT_SECRET in .env to enable full JWT enforcement in production.
+      JWT_SECRET: ${JWT_SECRET:-}
+      BROKER_API_KEY: ${BROKER_API_KEY:-koreon-broker-dev-key}
+      JAVA_URL: http://backendperm:8001   # service name, not localhost
+    volumes:
+      - face_images:/app/face_images
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
-# Frontend removido pois você vai rodar com 'ng serve'
+  # ── Java Spring Boot (auth, JWT, multitenancy, WebSocket) ────────────────────
+  backendperm:
+    build: ./backendPerm
+    ports:
+      - "8001:8001"
+    environment:
+      # JDBC format (different from Python's SQLAlchemy format)
+      DATABASE_URL: jdbc:postgresql://db:5432/koreontech
+      DB_USER: ${POSTGRES_USER:-admin}
+      DB_PASS: ${POSTGRES_PASSWORD:-admin}
+      JWT_SECRET: ${JWT_SECRET:-koreon-tech-dev-secret-must-be-at-least-32-chars!!}
+      BROKER_API_KEY: ${BROKER_API_KEY:-koreon-broker-dev-key}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@koreontech.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8001/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+    restart: unless-stopped
+
+  # ── Angular (Nginx) ──────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  face_images:
