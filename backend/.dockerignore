@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+*.db
+*.sqlite3
+dashboard_data.db
+face_images/
+.git
+.gitignore

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner Profissional - Matheus</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+    
+    <style>
+        /* 1. CONFIGURAÇÃO GERAL DA PÁGINA */
+        body {
+            background-color: #010409; /* Cor de fundo idêntica ao GitHub Dark */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 2. A BORDA FINA RGB (WRAPPER) */
+        .rgb-banner-wrapper {
+            position: relative;
+            padding: 2px; /* Espessura exata da borda RGB */
+            /* Gradiente de cores que cria o efeito RGB */
+            background: linear-gradient(90deg, #ff007f, #7928ca, #0070f3, #00dfd8, #ff007f);
+            background-size: 300%;
+            border-radius: 12px; /* Arredondamento dos cantos */
+            width: 850px; /* Largura ideal para banners de perfil */
+            animation: animate-rgb 6s linear infinite; /* Ativa a animação de movimento das cores */
+        }
+
+        /* 3. CONTEÚDO PRINCIPAL (O BANNER EM SI) */
+        .rgb-banner-content {
+            background-color: #0d1117; /* Fundo escuro e limpo do interior */
+            color: #ffffff;
+            padding: 50px 40px;
+            text-align: center;
+            border-radius: 10px; /* Levemente menor que o wrapper para encaixar */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Espaçamento entre as secções internas */
+        }
+
+        /* 4. TIPOGRAFIA */
+        .rgb-banner-content h1 {
+            margin: 0;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            /* Efeito de texto com leve brilho */
+            text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .rgb-banner-content p.subtitle {
+            color: #8b949e;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            font-family: 'Fira Code', monospace; /* Fonte com aspeto de código */
+        }
+
+        /* 5. SECÇÃO DE ÍCONES (TECNOLOGIAS) */
+        .tech-stack {
+            display: flex;
+            gap: 30px; /* Espaço entre os ícones */
+            margin-top: 10px;
+        }
+
+        .tech-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #8b949e;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        /* Aumentando o tamanho dos ícones do Devicon */
+        .tech-icon i {
+            font-size: 2.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        /* Efeito Hover: Quando passas o rato, o ícone cresce um pouco */
+        .tech-icon:hover i {
+            transform: translateY(-5px);
+            color: #ffffff;
+        }
+
+        /* 6. ANIMAÇÃO DO GRADIENTE */
+        @keyframes animate-rgb {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="rgb-banner-wrapper">
+        <div class="rgb-banner-content">
+            
+            <h1>MATHEUS HENRIQUE</h1>
+            <p class="subtitle">&lt; Full-Stack | Machine Learning | Cloud /&gt;</p>
+            
+            <div class="tech-stack">
+                <div class="tech-icon">
+                    <i class="devicon-react-original colored"></i>
+                    <span>React</span>
+                </div>
+                <div class="tech-icon">
+                    <i class="devicon-angularjs-plain colored"></i>
+                    <span>Angular</span>
+                </div>
+                <div class="tech-icon">
+                    <i class="devicon-nodejs-plain colored"></i>
+                    <span>Node.js</span>
+                </div>
+                <div class="tech-icon">
+                    <i class="devicon-laravel-original colored"></i>
+                    <span>Laravel</span>
+                </div>
+                <div class="tech-icon">
+                    <i class="devicon-python-plain colored"></i>
+                    <span>Python</span>
+                </div>
+                <div class="tech-icon">
+                    <i class="devicon-amazonwebservices-plain-wordmark colored"></i>
+                    <span>AWS</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<div class="guarita-page">
+
+  <header class="page-header">
+    <div class="header-left">
+      <a routerLink="/" class="back-btn">← Hub</a>
+      <h1>Guarita</h1>
+      <span class="badge-live">● AO VIVO</span>
+    </div>
+    <div class="view-toggle">
+      <button [class.active]="currentView === 'queue'" (click)="switchView('queue')">
+        Fila de Alertas
+        <span class="count-badge" *ngIf="alertQueue.length > 0">{{ alertQueue.length }}</span>
+      </button>
+      <button [class.active]="currentView === 'visitors'" (click)="switchView('visitors')">Visitantes</button>
+    </div>
+  </header>
+
+  <!-- FILA DE ALERTAS -->
+  <div class="content" *ngIf="currentView === 'queue'">
+
+    <div class="queue-layout">
+
+      <!-- Lista de alertas -->
+      <div class="alert-list">
+        <div class="list-header">
+          <span>Face não reconhecida</span>
+          <button class="refresh-btn" (click)="loadQueue()">↺</button>
+        </div>
+
+        <div *ngIf="loading" class="empty-state">Carregando...</div>
+        <div *ngIf="!loading && alertQueue.length === 0" class="empty-state">
+          Nenhum alerta pendente
+        </div>
+
+        <div
+          class="alert-card"
+          *ngFor="let alert of alertQueue"
+          [class.selected]="selectedAlert?.event_id === alert.event_id"
+          (click)="selectAlert(alert)"
+        >
+          <div class="alert-thumb">
+            <img *ngIf="getFaceUrl(alert.face_image_path) as url" [src]="url" alt="Face" />
+            <div *ngIf="!getFaceUrl(alert.face_image_path)" class="no-photo">?</div>
+          </div>
+          <div class="alert-info">
+            <span class="alert-type">{{ alert.event_type === 'visitor_detected' ? 'Possível Visitante' : 'Desconhecido' }}</span>
+            <span class="alert-time">{{ alert.timestamp | date:'HH:mm:ss' }}</span>
+            <span class="alert-cam">Câmera #{{ alert.camera_id }}</span>
+            <span class="alert-emotion" *ngIf="alert.emotion?.emotion">{{ alert.emotion.emotion }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel de decisão -->
+      <div class="decision-panel" *ngIf="selectedAlert; else noSelection">
+        <h2>Decisão do Operador</h2>
+
+        <div class="face-preview">
+          <img *ngIf="getFaceUrl(selectedAlert.face_image_path) as url" [src]="url" alt="Face capturada" />
+          <div *ngIf="!getFaceUrl(selectedAlert.face_image_path)" class="no-photo-large">Sem foto</div>
+        </div>
+
+        <div class="alert-details">
+          <p><strong>Tipo:</strong> {{ selectedAlert.event_type }}</p>
+          <p><strong>Câmera:</strong> #{{ selectedAlert.camera_id }}</p>
+          <p><strong>Horário:</strong> {{ selectedAlert.timestamp | date:'dd/MM HH:mm:ss' }}</p>
+          <p *ngIf="selectedAlert.emotion?.emotion"><strong>Emoção:</strong> {{ selectedAlert.emotion.emotion }}</p>
+          <p><strong>Confiança match:</strong> {{ (selectedAlert.confidence * 100 | number:'1.0-0') }}%</p>
+        </div>
+
+        <div class="device-select" *ngIf="devices.length > 0">
+          <label>Abrir portão:</label>
+          <select [(ngModel)]="selectedDeviceId" name="deviceSelect">
+            <option [value]="undefined">Não abrir</option>
+            <option *ngFor="let d of devices" [value]="d.id">{{ d.name }}</option>
+          </select>
+        </div>
+
+        <div class="decision-btns">
+          <button class="btn-approve" (click)="approve(selectedAlert, selectedDeviceId)">
+            ✓ Aprovar Entrada
+          </button>
+          <button class="btn-deny" (click)="deny(selectedAlert)">✗ Negar</button>
+          <button class="btn-cancel" (click)="clearSelected()">Cancelar</button>
+        </div>
+      </div>
+
+      <ng-template #noSelection>
+        <div class="decision-panel empty-panel">
+          <p>Selecione um alerta para tomar uma decisão</p>
+        </div>
+      </ng-template>
+
+    </div>
+  </div>
+
+  <!-- GESTÃO DE VISITANTES -->
+  <div class="content" *ngIf="currentView === 'visitors'">
+
+    <div class="visitors-header">
+      <h2>Visitantes</h2>
+      <button class="btn-primary" (click)="openVisitorForm()">+ Pré-cadastrar Visitante</button>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nome</th><th>Anfitrião</th><th>Destino</th><th>Válido até</th><th>Status</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of visitors">
+          <td>{{ v.name }}</td>
+          <td>{{ v.host }}</td>
+          <td>{{ v.destination || '—' }}</td>
+          <td>{{ v.valid_until | date:'dd/MM HH:mm' }}</td>
+          <td><span class="status-badge" [class]="v.status">{{ v.status }}</span></td>
+          <td class="actions">
+            <button *ngIf="v.status === 'pending'" class="btn-sm approve" (click)="approveVisitor(v)">Aprovar</button>
+            <button *ngIf="v.status === 'pending'" class="btn-sm deny" (click)="denyVisitor(v)">Negar</button>
+          </td>
+        </tr>
+        <tr *ngIf="visitors.length === 0">
+          <td colspan="6" class="empty-state">Nenhum visitante cadastrado</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODAL: PRÉ-CADASTRO DE VISITANTE -->
+  <div class="modal-overlay" *ngIf="showVisitorForm" (click)="closeVisitorForm()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3>Pré-cadastrar Visitante</h3>
+      <form (ngSubmit)="saveVisitor()">
+        <label>Nome *<input [(ngModel)]="newVisitor.name" name="name" required /></label>
+        <label>CPF<input [(ngModel)]="newVisitor.cpf" name="cpf" /></label>
+        <label>Anfitrião *<input [(ngModel)]="newVisitor.host" name="host" required /></label>
+        <label>Destino<input [(ngModel)]="newVisitor.destination" name="destination" /></label>
+        <label>Válido até *<input type="datetime-local" [(ngModel)]="newVisitor.valid_until" name="valid_until" required /></label>
+        <label>Observações<textarea [(ngModel)]="newVisitor.notes" name="notes"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" (click)="closeVisitorForm()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>

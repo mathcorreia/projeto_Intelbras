@@ -1,0 +1,145 @@
+<div class="dashboard-container" [class.fullscreen-mode]="isFullscreen">
+  
+  <header class="dashboard-header" *ngIf="!isFullscreen">
+    
+    <div class="header-brand">
+      <a routerLink="/" class="btn-back-modern" title="Voltar ao Início">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>Voltar</span>
+      </a>
+
+      <div class="logo-area" (click)="resetView()" title="Resetar Visualização">
+    <img src="letra.png" alt="Koreon Logo" style="width: 45px; height: 45px; object-fit: contain;">
+    <h1>KOREON <span class="thin">VMS</span></h1>
+    <div class="system-status-light"></div>
+</div>
+
+      <div class="divider"></div>
+
+      <div class="system-info">
+          <span class="status-text">Online</span>
+          <span class="meta-text">{{ cameras.length }} Canais</span>
+      </div>
+    </div> <div class="header-actions">
+     
+      <div class="search-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Buscar..." [ngModel]="searchTerm" (ngModelChange)="onSearch($event)">
+      </div>
+
+      <a routerLink="/camera-add" class="btn btn-outline">
+        <span>+ Adicionar</span>
+      </a>
+      <button (click)="toggleFullscreen()" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        <span>Monitor</span>
+      </button>
+    </div>
+  </header>
+  <div class="vms-controls" *ngIf="isFullscreen">
+    <div class="vms-panel">
+      <span class="label">MATRIZ:</span>
+      <div class="grid-buttons">
+        <button *ngFor="let size of gridOptions" 
+                [class.active]="selectedGridSize === size" 
+                (click)="setGridSize(size)">
+          {{ size }}
+        </button>
+      </div>
+      
+      <div class="separator"></div>
+      <button class="btn-exit" (click)="toggleFullscreen()">SAIR (ESC)</button>
+    </div>
+  </div>
+
+  <div class="camera-grid" [ngClass]="isFullscreen ? 'grid-' + selectedGridSize : 'grid-responsive'">
+    
+    <div *ngFor="let slot of displaySlots" class="grid-slot">
+      
+      <div *ngIf="slot.type === 'camera'" 
+           class="camera-card" 
+           [id]="'camera-card-' + slot.data.id"
+           [class.alert-active]="slot.data.hasAlert"
+           (click)="goToDetail(slot.data.id)">
+
+        <img [src]="apiService.getVideoFeedUrl(slot.data.id)" class="video-stream" alt="Live">
+
+        <div class="card-controls" (click)="$event.stopPropagation()">
+          <div class="ptz-overlay" *ngIf="slot.data.camera_type === 'mibo' || slot.data.camera_type === 'intelbras'" (click)="$event.stopPropagation()">
+            <button class="ptz-btn up" 
+                    (mousedown)="onPtzAction(slot.data.id, 'Up', 'start', $event)"
+                    (mouseup)="onPtzAction(slot.data.id, 'Up', 'stop', $event)"
+                    (mouseleave)="onPtzAction(slot.data.id, 'Up', 'stop', $event)">▲</button>
+            
+            <div class="ptz-middle">
+                <button class="ptz-btn left" 
+                        (mousedown)="onPtzAction(slot.data.id, 'Left', 'start', $event)"
+                        (mouseup)="onPtzAction(slot.data.id, 'Left', 'stop', $event)"
+                        (mouseleave)="onPtzAction(slot.data.id, 'Left', 'stop', $event)">◀</button>
+                
+                <div class="ptz-center-dot"></div>
+                
+                <button class="ptz-btn right" 
+                        (mousedown)="onPtzAction(slot.data.id, 'Right', 'start', $event)"
+                        (mouseup)="onPtzAction(slot.data.id, 'Right', 'stop', $event)"
+                        (mouseleave)="onPtzAction(slot.data.id, 'Right', 'stop', $event)">▶</button>
+            </div>
+            
+            <button class="ptz-btn down" 
+                    (mousedown)="onPtzAction(slot.data.id, 'Down', 'start', $event)"
+                    (mouseup)="onPtzAction(slot.data.id, 'Down', 'stop', $event)"
+                    (mouseleave)="onPtzAction(slot.data.id, 'Down', 'stop', $event)">▼</button>
+        </div>
+            <button class="icon-btn delete" (click)="deleteCamera(slot.data.id, $event)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path></svg>
+            </button>
+            <button class="icon-btn edit" (click)="editCamera(slot.data.id, $event)">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="icon-btn expand" (click)="toggleSingleCameraFullscreen(slot.data.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+        </div>
+
+        <div class="ai-badge" *ngIf="slot.data.lastEvent" 
+             [ngClass]="{'face-detected': slot.data.lastEvent.event_type === 'Reconhecimento Facial'}">
+          {{ formatEventLabel(slot.data.lastEvent) }}
+        </div>
+
+        <div class="hud-overlay">
+          <div class="cam-info">
+            <div class="cam-name">{{ slot.data.name }}</div>
+          </div>
+          <div class="people-counter" *ngIf="slot.data.peopleCount > 0">
+            <span class="icon">👤</span> {{ slot.data.peopleCount }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="slot.type === 'empty'" class="empty-slot-card" [class.hidden-in-normal]="!isFullscreen">
+        <div class="empty-content">SINAL OFF</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="vms-footer" *ngIf="!isFullscreen">
+    <div class="footer-left">
+    <img src="letra.png" alt="Koreon Tech" style="width: 28px; height: 28px; margin-right: 10px; vertical-align: middle;">
+    <span class="version">v3.5 Enterprise</span>
+    <span class="copyright">© 2026 Koreon Tech</span>
+</div>
+
+    <div class="footer-center">
+        <a href="https://www.koreontech.com.br/#/suporte" target="_blank">Suporte Técnico</a>
+        <span class="dot">·</span>
+        <a href="https://www.koreontech.com.br/#/privacidade" target="_blank">Privacidade</a>
+    </div>
+
+    <div class="footer-right">
+      <div class="status-item">
+        <span class="label">LATÊNCIA</span>
+        <span class="value latency">{{ serverLatency }}</span>
+      </div>
+    </div>
+  </footer>
+</div>
